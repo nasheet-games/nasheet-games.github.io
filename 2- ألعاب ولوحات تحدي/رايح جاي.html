@@ -2180,6 +2180,24 @@ body.sk .fld:focus{outline:0;box-shadow:inset 0 0 0 2.5px var(--sk-acc),0 0 0 4p
 body.sk .startbar,body.sk #toast,body.sk .h-store,body.sk .bar,body.sk .top,body.sk .us-bar{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 body.sk .startbar{background:rgba(255,252,242,.96)!important;box-shadow:0 -6px 20px rgba(60,30,0,.12)!important}
 
+/* ---------- الجوال (فحص التنسيق 2026-11-10): الشريط العلوي ما يتزاحم، والعنوان المرسوم يصغر داخل لوحته بدل ما يطلع فوق الأزرار ---------- */
+@media (max-width:640px){
+  body.sk .ib{width:2.5rem;height:2.5rem}
+  body.sk .ib .ic{width:1.15rem;height:1.15rem}
+  body.sk #g-title{flex:1 1 0;min-width:0;max-width:11rem;padding:.2rem .55rem!important}
+  body.sk #g-title small{display:none}
+  body.sk #g-title::before{height:auto;width:100%;max-height:2.7rem}
+  body.sk .tm .sub{overflow:visible}
+  /* شريط البدء الثابت يطول على الجوال: مسافة تحت آخر الإعدادات عشان «للمشرف» ما يختفي تحته */
+  body.sk .setup-wrap{padding-bottom:9.5rem!important}
+  /* لوحة الأقاليم (تحدي الغابة): اسم الإقليم داخل إطاره */
+  /* بطاقة الكشف: أزرارها تنكسر سطرين بدل ما تطلع برا البطاقة */
+  body.sk .reveal{max-width:94vw;padding:1.1rem 1rem 1.2rem}
+  body.sk .reveal .btn{white-space:normal}
+  body.sk .reveal .btn kbd{display:none}
+  body.sk .region h3{font-size:clamp(.85rem,4.2vw,1.15rem)!important;padding-inline:.45rem!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+
 /* رايح جاي: طريقين (زيادة/نقصان) بدل الخانات — نفس روح الغلاف: أسفلت لامع، حواف ذهبية، لافتات 2.5D */
 body.sk .ln-wrap{gap:.8rem;padding:.3rem .2rem .6rem}
 body.sk .ln-idea span{background:rgba(255,255,255,.92);color:var(--sk-ink);font-family:var(--sk-ui);border-radius:99px;padding:.45em 1.2em;box-shadow:inset 0 0 0 2px #fff,0 3px 0 rgba(20,40,90,.25),0 8px 18px rgba(20,30,70,.18)}
