@@ -3690,21 +3690,21 @@ svg.lm .tk-sh{fill:rgba(8,20,45,.4)}
 @keyframes lmSweep{from{transform:rotate(calc(var(--a) - 22deg))}to{transform:rotate(calc(var(--a) + 22deg))}}
 
 /* ===== سماء حرب خلف طاولة الخريطة: حمرة غروب ودخان يمشي (شاشة اللعب) ===== */
-body.sk:has(#game.on) #skbg::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(90% 60% at 50% 106%,rgba(255,150,60,.45),rgba(255,150,60,0) 70%),linear-gradient(180deg,rgba(112,14,10,.78) 0%,rgba(178,40,22,.6) 35%,rgba(226,92,40,.42) 70%,rgba(255,160,80,.28) 100%)}
-body.sk:has(#game.on) #skbg::before{content:"";position:absolute;z-index:2;left:0;top:-3%;width:calc(100% + 900px);height:48%;opacity:.55;pointer-events:none;
+body.sk.lm-war #skbg::after{content:"";position:absolute;inset:0;z-index:1;background:radial-gradient(90% 60% at 50% 106%,rgba(255,150,60,.45),rgba(255,150,60,0) 70%),linear-gradient(180deg,rgba(112,14,10,.78) 0%,rgba(178,40,22,.6) 35%,rgba(226,92,40,.42) 70%,rgba(255,160,80,.28) 100%)}
+body.sk.lm-war #skbg::before{content:"";position:absolute;z-index:2;left:0;top:-3%;width:calc(100% + 900px);height:48%;opacity:.55;pointer-events:none;
   background:radial-gradient(closest-side,rgba(38,24,24,.72),rgba(38,24,24,0)) 0 30%/450px 150px repeat-x,radial-gradient(closest-side,rgba(64,40,34,.55),rgba(64,40,34,0)) 225px 78%/450px 170px repeat-x;
   animation:lmSmokeSky 80s linear infinite;will-change:transform}
 @keyframes lmSmokeSky{to{transform:translateX(-900px)}}
 /* لوحة الفرق والشريط العلوي فوق السماء الحمراء: ورق فاتح عشان الكتابة تبقى واضحة */
-body.sk:has(#game.on) .side{background:linear-gradient(180deg,rgba(255,249,236,.95),rgba(255,243,222,.92));border-radius:22px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8),0 0 0 3px rgba(122,65,25,.55),0 14px 30px rgba(40,8,0,.35)}
-body.sk:has(#game.on) .top{background:linear-gradient(180deg,rgba(255,249,236,.95),rgba(255,243,222,.9));box-shadow:0 3px 0 rgba(122,65,25,.45),0 8px 22px rgba(40,8,0,.3)}
+body.sk.lm-war .side{background:linear-gradient(180deg,rgba(255,249,236,.95),rgba(255,243,222,.92));border-radius:22px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8),0 0 0 3px rgba(122,65,25,.55),0 14px 30px rgba(40,8,0,.35)}
+body.sk.lm-war .top{background:linear-gradient(180deg,rgba(255,249,236,.95),rgba(255,243,222,.9));box-shadow:0 3px 0 rgba(122,65,25,.45),0 8px 22px rgba(40,8,0,.3)}
 
 /* ===== الوضع الليلي: ليلة معركة (سماء كحلية بوهج نار، بحر ليلي، بطاقات داكنة وكتابة فاتحة) ===== */
 [data-theme=dark] body.sk #skbg{background:#0b0f22}
 [data-theme=dark] body.sk #skbg::after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(8,12,34,.86),rgba(16,14,40,.8) 55%,rgba(40,14,24,.8))}
-[data-theme=dark] body.sk:has(#game.on) #skbg::after{background:radial-gradient(100% 55% at 50% 108%,rgba(255,90,30,.55),rgba(255,90,30,0) 70%),linear-gradient(180deg,rgba(8,10,30,.9) 0%,rgba(30,12,34,.84) 50%,rgba(96,20,20,.8) 100%)}
-[data-theme=dark] body.sk:has(#game.on) .side{background:linear-gradient(180deg,rgba(20,26,52,.95),rgba(12,16,34,.93));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08),0 0 0 3px rgba(122,65,25,.6),0 14px 30px rgba(0,0,0,.5)}
-[data-theme=dark] body.sk:has(#game.on) .top{background:linear-gradient(180deg,rgba(20,26,52,.95),rgba(12,16,34,.92));box-shadow:0 3px 0 rgba(122,65,25,.55),0 8px 22px rgba(0,0,0,.45)}
+[data-theme=dark] body.sk.lm-war #skbg::after{background:radial-gradient(100% 55% at 50% 108%,rgba(255,90,30,.55),rgba(255,90,30,0) 70%),linear-gradient(180deg,rgba(8,10,30,.9) 0%,rgba(30,12,34,.84) 50%,rgba(96,20,20,.8) 100%)}
+[data-theme=dark] body.sk.lm-war .side{background:linear-gradient(180deg,rgba(20,26,52,.95),rgba(12,16,34,.93));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.08),0 0 0 3px rgba(122,65,25,.6),0 14px 30px rgba(0,0,0,.5)}
+[data-theme=dark] body.sk.lm-war .top{background:linear-gradient(180deg,rgba(20,26,52,.95),rgba(12,16,34,.92));box-shadow:0 3px 0 rgba(122,65,25,.55),0 8px 22px rgba(0,0,0,.45)}
 [data-theme=dark] body.sk .tm{background:linear-gradient(180deg,#27315a 0%,#182040 100%);box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--tc) 72%,#000),0 4px 0 color-mix(in srgb,var(--tc) 35%,#060914),0 10px 20px rgba(0,0,0,.45)}
 [data-theme=dark] body.sk .tm.on{background:linear-gradient(180deg,color-mix(in srgb,var(--tc) 34%,#27315a),#182040);box-shadow:inset 0 0 0 3px var(--tc),0 0 0 3px var(--sk-gold2),0 4px 0 color-mix(in srgb,var(--tc) 35%,#060914),0 0 22px rgba(255,190,40,.45)}
 [data-theme=dark] body.sk .tm,[data-theme=dark] body.sk .tm b{color:#f7f3ea}
@@ -4472,6 +4472,9 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
   }
   // التراجع والبدء من جديد ما يطلّعون انفجارات
   document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#undoBtn,[data-act="undo"],[data-act="new"],#resumeBtn')) quiet(); }, true);
+  // سماء الحرب خلف شاشة اللعب: كلاس على body بدل :has() (أخف على الأجهزة الضعيفة)
+  const gs = document.getElementById('game');
+  if (gs) { const sync = () => document.body.classList.toggle('lm-war', gs.classList.contains('on')); new MutationObserver(sync).observe(gs, { attributes: true, attributeFilter: ['class'] }); sync(); }
   const m0 = document.getElementById('map');
   if (m0 && m0.querySelector('g.fills') && document.documentElement.dataset.design !== 'atlas') later(m0);
 })();
