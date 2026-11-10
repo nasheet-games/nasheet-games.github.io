@@ -3632,9 +3632,9 @@ svg.lm .tk-sh{fill:rgba(8,20,45,.4)}
 @keyframes lmBob{50%{transform:translateY(-3px) rotate(-3deg)}}
 
 /* سفن */
-.lm-ship{width:84px;margin:-58px 0 0 -42px;will-change:transform}
-.lm-ship.boat{width:56px;margin:-40px 0 0 -28px}
-.lm-ship.warship{width:108px;margin:-66px 0 0 -54px}
+.lm-ship{width:60px;margin:-41px 0 0 -30px;will-change:transform}
+.lm-ship.boat{width:40px;margin:-28px 0 0 -20px}
+.lm-ship.warship{width:76px;margin:-46px 0 0 -38px}
 .lm-ship .lm-sprite{position:relative;z-index:1;animation:lmBob 3.4s ease-in-out infinite;transform-origin:50% 85%}
 .lm-ship::after{content:"";position:absolute;left:4%;right:4%;bottom:2%;height:20%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,255,255,.8),rgba(255,255,255,0))}
 .lm-ship .stk{position:absolute;z-index:2;left:82%;top:12%;width:0;height:0}
@@ -3643,7 +3643,7 @@ svg.lm .tk-sh{fill:rgba(8,20,45,.4)}
 @keyframes lmStack{0%{opacity:0;transform:translate(0,0) scale(.5)}15%{opacity:.9}100%{opacity:0;transform:translate(28px,-42px) scale(2.3)}}
 
 /* دبابات ومدافع */
-.lm-tank{width:66px;margin:-50px 0 0 -33px;will-change:transform}
+.lm-tank{width:48px;margin:-36px 0 0 -24px;will-change:transform}
 .lm-tank .lm-sprite{position:relative;z-index:1;animation:lmRumble .3s steps(2) infinite}
 .lm-tank::after{content:"";position:absolute;left:10%;right:10%;bottom:-2%;height:18%;border-radius:50%;background:radial-gradient(closest-side,rgba(40,24,6,.35),transparent)}
 @keyframes lmRumble{50%{transform:translateY(-1.2px)}}
@@ -3687,28 +3687,30 @@ svg.lm .tk-sh{fill:rgba(8,20,45,.4)}
     radial-gradient(ellipse 78% 74% at 50% 54%,rgba(255,90,40,0) 58%,rgba(214,58,28,.24) 82%,rgba(150,24,14,.42) 100%)}
 [data-theme=dark] .lm-haze{background:linear-gradient(0deg,rgba(255,80,26,.32) 0%,rgba(255,80,26,0) 26%),linear-gradient(180deg,rgba(120,20,30,.34) 0%,rgba(120,20,30,0) 22%),
     radial-gradient(ellipse 78% 74% at 50% 54%,rgba(255,90,40,0) 60%,rgba(170,40,30,.3) 100%)}
-.lm-skysmoke{position:absolute;left:0;width:calc(300px*var(--k,1));opacity:.34;animation:lmSkySmoke 95s linear infinite;will-change:transform}
+.lm-skysmoke{position:absolute;left:0;width:calc(300px*var(--k,1));opacity:.3;animation:lmSkySmoke 150s linear infinite;will-change:transform}
 @keyframes lmSkySmoke{from{transform:translateX(1500px)}to{transform:translateX(-420px)}}
 [data-theme=dark] .lm-skysmoke{opacity:.42;filter:brightness(.6)}
 
 /* الجو */
-.lm-flight{opacity:0;transition:opacity .4s;will-change:transform}
-.lm-pl{position:absolute;left:-56px;top:-40px;width:112px}
+.lm-flight{will-change:transform}
+/* مخرج الحياة: كل شي يظهر ويختفي بنعومة */
+.lm-ship,.lm-tank,.lm-heli,.lm-airship,.lm-flight,.lm-gulls{transition:opacity 1.4s ease}
+.lm-pl{position:absolute;left:-39px;top:-28px;width:78px}
 .lm-pl .lm-sprite{position:relative;z-index:1;animation:lmBob 2.2s ease-in-out infinite}
-.lm-pl::after{content:"";position:absolute;left:80%;top:42%;width:160px;height:4px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.6),rgba(255,255,255,0))}
+.lm-pl::after{content:"";position:absolute;left:80%;top:42%;width:110px;height:4px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.6),rgba(255,255,255,0))}
 .lm-live.lt .lm-pl::after{display:none}
 .lm-pshadow{position:absolute;left:18%;top:150%;width:64%;height:26%;border-radius:50%;background:radial-gradient(closest-side,rgba(4,25,50,.32),transparent)}
-.lm-heli{width:100px;margin:-52px 0 0 -50px;will-change:transform}
+.lm-heli{width:70px;margin:-36px 0 0 -35px;will-change:transform}
 .lm-heli .lm-sprite{position:relative;z-index:1;animation:lmHover 1.8s ease-in-out infinite}
 .lm-heli .lm-pshadow{top:140%}
 .lm-heli .rot{position:absolute;z-index:2;left:0;top:-29.5%;width:76%;aspect-ratio:1;transform:scaleY(.38)}
 .lm-heli .rot::before{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(255,255,255,0) 0 28deg,rgba(255,255,255,.6) 38deg,rgba(255,255,255,0) 48deg 208deg,rgba(255,255,255,.6) 218deg,rgba(255,255,255,0) 228deg);animation:lmRotor .2s linear infinite}
 @keyframes lmRotor{to{transform:rotate(360deg)}}
 @keyframes lmHover{50%{transform:translateY(-5px)}}
-.lm-airship{width:176px;margin:-64px 0 0 -88px;opacity:0;transition:opacity 1.2s;will-change:transform}
+.lm-airship{width:122px;margin:-44px 0 0 -61px;will-change:transform}
 .lm-airship .lm-sprite{position:relative;z-index:1;animation:lmBob 5s ease-in-out infinite}
 .lm-airship .lm-pshadow{top:200%;opacity:.55}
-.lm-gulls{width:66px;animation:lmGulls 52s linear infinite;will-change:transform}
+.lm-gulls{width:46px;animation:lmGulls 85s linear infinite;will-change:transform}
 @keyframes lmGulls{0%{transform:translate(1380px,150px)}25%{transform:translate(1000px,110px)}50%{transform:translate(620px,170px)}75%{transform:translate(240px,120px)}100%{transform:translate(-160px,180px)}}
 .lm-beam{position:absolute;display:none;width:190px;height:980px;margin:-980px 0 0 -95px;transform-origin:50% 100%;background:linear-gradient(to top,rgba(255,250,214,.55),rgba(255,250,214,.2) 55%,rgba(255,250,214,0));clip-path:polygon(45% 100%,55% 100%,100% 0,0 0);animation:lmSweep 9s ease-in-out infinite alternate}
 @keyframes lmSweep{from{transform:rotate(calc(var(--a) - 22deg))}to{transform:rotate(calc(var(--a) + 22deg))}}
@@ -4271,7 +4273,6 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
     const gnd = div('lm-gnd'), sea = div('lm-sea'), fx = div('lm-fx'), air = div('lm-air');
     // سماء الحرب: حمرة على أطراف الخريطة (أقوى فوق) + دخان يمشي على الحافة العلوية
     const haze = document.createElement('div'); haze.className = 'lm-haze'; haze.setAttribute('aria-hidden', 'true'); wrap.insertBefore(haze, lay);
-    if (ART.fx_smoke && !LT) [[-92, 0, .62], [-78, -48, .78]].forEach(([y, d, k]) => { const c = div('lm-skysmoke', air, im('fx_smoke')); c.style.top = y + 'px'; c.style.setProperty('--k', k); c.style.animationDelay = d + 's'; });
     const timers = new Set(); const later = (ms, f) => { const t = setTimeout(() => { timers.delete(t); f(); }, ms); timers.add(t); };
     const anim = (e, kf, o) => { try { return e.animate(kf, o); } catch (er) { return null; } };
 
@@ -4321,7 +4322,7 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
       if (life) later(life, () => { f.classList.add('out'); later(3200, () => { f.remove(); const j = fireEls.indexOf(f); if (j >= 0) fireEls.splice(j, 1); }); });
       fireEls.push(f); return f;
     };
-    C.fireAt.slice(0, LT ? 2 : 3).forEach(([x, y]) => fire(x, y + 8, .9));
+    C.fireAt.slice(0, LT ? 1 : 2).forEach(([x, y]) => fire(x, y + 8, .85));
 
     /* 2) المدافع والتحصينات: ترتد وتطلق قذيفة تنزل في البحر (أو غبار على اليابسة) */
     const guns = [];
@@ -4331,7 +4332,7 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
       const g = div('lm-gun' + (flip ? ' flip' : ''), gnd, im('lm_' + m.type));
       g.style.width = m.size + 'px'; pos(g, m.x - m.size / 2, m.y - m.size * .62, flip ? ' scaleX(-1)' : '');
       const mx = m.type === 'cannon' ? .13 : .05, my = m.type === 'cannon' ? .2 : .44;
-      guns.push({ g, m, tgt, mz: [m.x - m.size / 2 + (flip ? 1 - mx : mx) * m.size, m.y - m.size * .62 + my * m.size], dir: flip ? 1 : -1, next: performance.now() + R(1500, 7000) });
+      guns.push({ g, m, tgt, mz: [m.x - m.size / 2 + (flip ? 1 - mx : mx) * m.size, m.y - m.size * .62 + my * m.size], dir: flip ? 1 : -1 });
     });
     const shoot = u => {
       const [x, y] = u.mz;
@@ -4341,7 +4342,6 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
     };
 
     /* 3) سفن: حربية تقصف + شراعية + قارب، على الطرق البحرية (الجزء اللي فوق الماء) */
-    const movers = [];
     const routes = [...svg.querySelectorAll('g.links .ln')].map(p => {
       const n = p.getAttribute('d').match(/-?\d*\.?\d+/g).map(Number); if (n.length < 6) return null;
       const [ax, ay, cx, cy, bx, by] = n, at = t => [(1 - t) * (1 - t) * ax + 2 * (1 - t) * t * cx + t * t * bx, (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * cy + t * t * by];
@@ -4363,44 +4363,92 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
       for (const l of lanes) if (pk.every(p => Math.abs(p[0] - l[0]) > 110)) pk.push(l);
       pk.slice(0, 4 - routes.length).forEach(([y, xa, xb]) => routes.push({ at: t => [xa + (xb - xa) * t, y + Math.sin(t * 6.283) * 6], s0: 0, s1: 1, len: xb - xa }));
     }
+    /* مخرج الحياة (2026-11-10، طلب علي): 3–4 أشياء متحركة بس في نفس الوقت، كل واحد يبان 25–45 ثانية ثم يختفي ويجي غيره */
+    const actors = [];
+    const actor = (kind, el, o = {}) => { const a = { kind, el, on: false, fade: 0, cool: 0, until: 0, ...o }; el.style.opacity = 0; actors.push(a); return a; };
     const SHIPS = [ART.mv_warship ? 'mv_warship' : 'mv_ship', ART.mv_boat ? 'mv_boat' : 'mv_ship', 'mv_ship', ART.mv_warship ? 'mv_warship' : 'mv_boat'];
     routes.slice(0, LT ? 3 : 4).forEach((r, k) => {
       const kind = SHIPS[k], war = kind === 'mv_warship';
       const el = div('lm-ship ' + kind.slice(3), sea, im(kind) + (war ? '<span class="stk"><i></i><i></i></span>' : ''));
-      movers.push({ el, r, war, t: Math.random(), dir: k % 2 ? -1 : 1, sp: 1 / (r.len * (kind === 'mv_boat' ? 0.075 : 0.12)), x: 0, y: 0, face: -1, next: performance.now() + R(3000, 9000) });
+      actor('ship', el, { r, war, t: Math.random(), dir: k % 2 ? -1 : 1, sp: 1 / (r.len * (kind === 'mv_boat' ? 0.13 : 0.2)), x: -999, y: -999, face: -1,
+        tick(dt) {
+          this.t += this.dir * this.sp * dt; if (this.t > 1) { this.t = 1; this.dir = -1; } if (this.t < 0) { this.t = 0; this.dir = 1; }
+          const u = this.r.s0 + (this.r.s1 - this.r.s0) * this.t, [x, y] = this.r.at(u), [x2] = this.r.at(Math.min(1, u + .01 * this.dir));
+          this.face = x2 < x ? -1 : 1; this.x = x; this.y = y;
+          this.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scaleX(${-this.face})`;
+        },
+        fire() { const bx = this.x + this.face * 26, by = this.y - 13; flash(bx, by, .65); puff(bx, by, .5, this.face * 14); const tx = this.x + this.face * R(120, 200), ty = this.y + R(-50, 50); if (water(tx, ty)) shell(bx, by, tx, ty, () => splash(tx, ty, .65)); } });
     });
 
-    /* 4) دبابات تمشي داخل الجزر الكبيرة، توقف عند الطرف وتطلق */
-    const tanks = (ART.mv_tank ? C.tanks : []).slice(0, LT ? 1 : 2).map(t => {
-      const el = div('lm-tank', gnd, im('mv_tank'));
-      return { el, t, x: R(t.xa, t.xb), dir: Math.random() < .5 ? -1 : 1, wait: 0 };
+    /* 4) دبابات تمشي داخل الجزر الكبيرة ببطء، توقف عند الطرف */
+    (ART.mv_tank ? C.tanks : []).slice(0, LT ? 1 : 2).forEach(t => {
+      actor('tank', div('lm-tank', gnd, im('mv_tank')), { t, x: R(t.xa, t.xb), dir: Math.random() < .5 ? -1 : 1, wait: 0,
+        tick(dt) {
+          if (this.wait > 0) { this.wait -= dt; if (this.wait <= 0) this.dir *= -1; }
+          else { this.x += this.dir * 9 * dt; if (this.x > this.t.xb || this.x < this.t.xa) { this.x = Math.max(this.t.xa, Math.min(this.t.xb, this.x)); this.wait = R(2, 3.5); } }
+          this.el.style.transform = `translate(${this.x.toFixed(1)}px,${this.t.y.toFixed(1)}px) scaleX(${-this.dir})`;
+        },
+        fire() { const bx = this.x + this.dir * 22, by = this.t.y - 22; flash(bx, by, .5); puff(bx, by, .4, this.dir * 10); } });
     });
 
-    /* 5) الجو: أسراب طيارات وقاذفة، هليكوبتر، منطاد، نوارس */
-    if (ART.mv_gulls) div('lm-gulls', air, im('mv_gulls'));
+    /* 5) الجو: سرب طيارات أو قاذفة (مرة وحدة)، هليكوبتر، منطاد، نوارس */
+    if (ART.mv_gulls) actor('gulls', div('lm-gulls', air, im('mv_gulls')), { tick() { } });
     const FIG = ART.mv_fighter ? 'mv_fighter' : 'mv_plane';
     const FORM = {
-      v3: [[0, 0, FIG, 1], [74, -50, FIG, .9], [74, 50, FIG, .9]],
-      pair: [[0, 0, FIG, 1], [80, 44, FIG, .9]],
-      bomb: [[0, 0, ART.mv_bomber ? 'mv_bomber' : FIG, ART.mv_bomber ? 1.55 : 1.1], [50, -92, FIG, .82], [50, 92, FIG, .82]],
-      solo: [[0, 0, FIG, 1.15]],
+      v3: [[0, 0, FIG, 1], [52, -35, FIG, .9], [52, 35, FIG, .9]],
+      pair: [[0, 0, FIG, 1], [56, 31, FIG, .9]],
+      bomb: [[0, 0, ART.mv_bomber ? 'mv_bomber' : FIG, ART.mv_bomber ? 1.5 : 1.1], [35, -64, FIG, .82], [35, 64, FIG, .82]],
+      solo: [[0, 0, FIG, 1.1]],
     };
-    const flight = div('lm-flight', air); let fl = null, nextFl = performance.now() + 2500;
-    const launch = now => {
-      const names = LT ? ['pair', 'solo', 'bomb'] : ['v3', 'bomb', 'v3', 'pair', 'solo'], f = FORM[names[Math.floor(Math.random() * names.length)]];
-      flight.innerHTML = f.map(([dx, dy, k, s]) => `<div class="lm-pl" style="transform:translate(${dx}px,${dy}px) scale(${s})"><i class="lm-pshadow"></i>${im(k)}</div>`).join('');
-      const ltr = Math.random() < .5, y0 = H * R(.12, .8), slow = f[0][2] === 'mv_bomber';
-      fl = { t: 0, dur: (slow ? 15 : 9.5) * R(.9, 1.15), x0: ltr ? -220 : W + 220, x1: ltr ? W + 220 : -220, y0, y1: Math.max(60, Math.min(H - 60, y0 + R(-.3, .3) * H)), f: ltr ? -1 : 1, wob: R(0, 6.28) };
-      flight.style.opacity = 1;
+    const flight = div('lm-flight', air);
+    actor('flight', flight, { once: true,
+      start() {
+        const names = LT ? ['pair', 'solo', 'bomb'] : ['v3', 'bomb', 'pair', 'solo'], f = FORM[names[Math.floor(Math.random() * names.length)]];
+        flight.innerHTML = f.map(([dx, dy, k, sc]) => `<div class="lm-pl" style="transform:translate(${dx}px,${dy}px) scale(${sc})"><i class="lm-pshadow"></i>${im(k)}</div>`).join('');
+        const ltr = Math.random() < .5, y0 = H * R(.12, .8), slow = f[0][2] === 'mv_bomber';
+        this.p = { t: 0, dur: (slow ? 24 : 16) * R(.9, 1.15), x0: ltr ? -180 : W + 180, x1: ltr ? W + 180 : -180, y0, y1: Math.max(60, Math.min(H - 60, y0 + R(-.25, .25) * H)), f: ltr ? -1 : 1, wob: R(0, 6.28) };
+      },
+      tick(dt, now) {
+        const P = this.p; if (!P) return;
+        P.t += dt / P.dur; const t = P.t, x = P.x0 + (P.x1 - P.x0) * t, y = P.y0 + (P.y1 - P.y0) * t + Math.sin(t * 6.28 + P.wob) * 10;
+        const ang = Math.atan2(P.y1 - P.y0, Math.abs(P.x1 - P.x0)) * 57.3 * .6;
+        flight.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scaleX(${P.f}) rotate(${(-ang).toFixed(1)}deg)`;
+        if (t >= 1 && this.on) end(this, now);
+      } });
+    if (ART.mv_heli) actor('heli', div('lm-heli', air, `<i class="lm-pshadow"></i>${im('mv_heli')}${LT ? '' : '<b class="rot"></b>'}`), { x: W * R(.25, .75), y: H * R(.3, .7), ox: 0, oy: 0, tx: 0, ty: 0, t: 1, dur: 1, hold: 0, face: -1,
+      tick(dt) {
+        if (this.t >= 1) { this.hold -= dt; if (this.hold <= 0) { let tx, ty, n = 0; do { tx = R(140, W - 140); ty = R(110, H - 90); } while (++n < 12 && Math.hypot(tx - this.x, ty - this.y) < 240); this.ox = this.x; this.oy = this.y; this.tx = tx; this.ty = ty; this.t = 0; this.dur = Math.hypot(tx - this.x, ty - this.y) / 38; this.face = tx < this.x ? -1 : 1; } }
+        else { this.t = Math.min(1, this.t + dt / this.dur); const e = this.t * this.t * (3 - 2 * this.t); this.x = this.ox + (this.tx - this.ox) * e; this.y = this.oy + (this.ty - this.oy) * e; if (this.t >= 1) this.hold = R(3, 6); }
+        this.el.style.transform = `translate(${this.x.toFixed(1)}px,${this.y.toFixed(1)}px) scaleX(${-this.face}) rotate(${this.t < 1 ? -4 : 0}deg)`;
+      } });
+    if (ART.mv_airship && !LT) actor('airship', div('lm-airship', air, `<i class="lm-pshadow"></i>${im('mv_airship')}`), { once: true,
+      start() { this.t = 0; this.ltr = Math.random() < .5; this.y = H * R(.08, .3); },
+      tick(dt, now) {
+        this.t += dt / 85; const x = this.ltr ? -150 + (W + 300) * this.t : W + 150 - (W + 300) * this.t;
+        this.el.style.transform = `translate(${x.toFixed(1)}px,${this.y.toFixed(1)}px) scaleX(${this.ltr ? -1 : 1})`;
+        if (this.t >= 1 && this.on) end(this, now);
+      } });
+    const MAX = LT ? 3 : 4, CAP = { ship: 2 };
+    let nextAdd = performance.now() + 400, nextBurst = performance.now() + R(4000, 7000);
+    function begin(a, now) { a.on = true; a.el.style.opacity = 1; a.until = a.once ? Infinity : now + R(25000, 45000); if (a.start) a.start(now); }
+    function end(a, now) { a.on = false; a.el.style.opacity = 0; a.fade = now + 1500; a.cool = now + R(10000, 22000); }
+    const direct = now => {
+      for (const a of actors) if (a.on && now > a.until) end(a, now);
+      const on = actors.filter(a => a.on);
+      if (on.length >= MAX || now < nextAdd) return;
+      const kinds = on.map(a => a.kind), cnt = k => kinds.filter(x => x === k).length;
+      const cand = actors.filter(a => !a.on && now > a.cool && now > a.fade && cnt(a.kind) < (CAP[a.kind] || 1));
+      if (!cand.length) return;
+      const fresh = cand.filter(a => !kinds.includes(a.kind)), pool = fresh.length ? fresh : cand;
+      begin(pool[Math.floor(Math.random() * pool.length)], now);
+      nextAdd = now + (on.length < 1 ? 900 : R(5000, 10000));
     };
-    let heli = null;
-    if (ART.mv_heli) { const el = div('lm-heli', air, `<i class="lm-pshadow"></i>${im('mv_heli')}${LT ? '' : '<b class="rot"></b>'}`); heli = { el, x: W * .3, y: H * .4, tx: W * .3, ty: H * .4, ox: W * .3, oy: H * .4, t: 1, dur: 1, hold: 0, face: -1 }; }
-    let ship2 = null;
-    if (ART.mv_airship && !LT) { const el = div('lm-airship', air, `<i class="lm-pshadow"></i>${im('mv_airship')}`); ship2 = { el, t: 0, dur: 55, y: H * R(.1, .3), ltr: true, wait: 4 }; }
+    // سماء: دخان واحد خفيف على الحافة العلوية
+    if (ART.fx_smoke && !LT) { const c = div('lm-skysmoke', air, im('fx_smoke')); c.style.top = '-80px'; c.style.setProperty('--k', .7); }
     // كشافات الليل (تظهر بالوضع الداكن فقط عن طريق CSS)
     if (!LT) [[.06, -24], [.94, 24]].forEach(([x, a]) => { const b = div('lm-beam', air); b.style.left = (W * x) + 'px'; b.style.top = H + 'px'; b.style.setProperty('--a', a + 'deg'); b.style.animationDelay = -R(0, 8).toFixed(1) + 's'; });
     // قصف بعيد يلمع على أطراف البحر
-    const glow = div('lm-war-glow', fx); let nextGlow = performance.now() + 3000, nextSea = performance.now() + 5000;
+    const glow = div('lm-war-glow', fx); let nextGlow = performance.now() + 4000, nextSea = performance.now() + 9000;
 
     /* 6) احتلال أرض بالهجوم: انفجار كبير ثم حريق يشتعل جنب شارتها شوي */
     const pend = [];
@@ -4424,49 +4472,17 @@ body.sk :is(${SKA.titleSel})::before{content:"";display:block;height:clamp(2.3re
       if (document.hidden || !wrap.offsetParent) return;
       const ov = !!document.getElementById('ov');
       if (!ov && pend.length) playCapture(pend.shift());
-      for (const m of movers) {
-        m.t += m.dir * m.sp * dt; if (m.t > 1) { m.t = 1; m.dir = -1; } if (m.t < 0) { m.t = 0; m.dir = 1; }
-        const u = m.r.s0 + (m.r.s1 - m.r.s0) * m.t, [x, y] = m.r.at(u), [x2] = m.r.at(Math.min(1, u + .01 * m.dir));
-        m.face = x2 < x ? -1 : 1; m.x = x; m.y = y;
-        m.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scaleX(${-m.face})`;
-        if (m.war && !ov && now > m.next) {
-          m.next = now + R(LT ? 9000 : 5000, LT ? 16000 : 11000);
-          const bx = x + m.face * 36, by = y - 18; flash(bx, by, .8); puff(bx, by, .6, m.face * 18);
-          const tx = x + m.face * R(140, 240), ty = y + R(-60, 60); if (water(tx, ty)) shell(bx, by, tx, ty, () => splash(tx, ty, .75));
-        }
-      }
-      for (const k of tanks) {
-        if (k.wait > 0) { k.wait -= dt; if (k.wait <= 0) k.dir *= -1; }
-        else { k.x += k.dir * 15 * dt; if (k.x > k.t.xb || k.x < k.t.xa) { k.x = Math.max(k.t.xa, Math.min(k.t.xb, k.x)); k.wait = R(1.4, 2.6); if (!ov) { const bx = k.x + k.dir * 30, by = k.t.y - 30; later(500, () => { flash(bx, by, .6); puff(bx, by, .45, k.dir * 14); }); } } }
-        k.el.style.transform = `translate(${k.x.toFixed(1)}px,${k.t.y.toFixed(1)}px) scaleX(${-k.dir})`;
-      }
-      for (const u of guns) if (now > u.next) { u.next = now + R(LT ? 9000 : 5500, LT ? 15000 : 10500); if (!ov) shoot(u); }
-      // الطيارات
-      if (!fl && now > nextFl) launch(now);
-      if (fl) {
-        fl.t += dt / fl.dur; const t = fl.t, x = fl.x0 + (fl.x1 - fl.x0) * t, y = fl.y0 + (fl.y1 - fl.y0) * t + Math.sin(t * 6.28 + fl.wob) * 14;
-        const ang = Math.atan2(fl.y1 - fl.y0, Math.abs(fl.x1 - fl.x0)) * 57.3 * .6;
-        flight.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scaleX(${fl.f}) rotate(${(-ang).toFixed(1)}deg)`;
-        if (t >= 1) { fl = null; flight.style.opacity = 0; nextFl = now + R(LT ? 9000 : 4000, LT ? 16000 : 9000); }
-      }
-      if (heli) {
-        const h = heli;
-        if (h.t >= 1) { h.hold -= dt; if (h.hold <= 0) { let tx, ty, n = 0; do { tx = R(140, W - 140); ty = R(110, H - 90); } while (++n < 12 && Math.hypot(tx - h.x, ty - h.y) < 280); h.ox = h.x; h.oy = h.y; h.tx = tx; h.ty = ty; h.t = 0; h.dur = Math.hypot(tx - h.x, ty - h.y) / 60; h.face = tx < h.x ? -1 : 1; } }
-        else { h.t = Math.min(1, h.t + dt / h.dur); const e = h.t * h.t * (3 - 2 * h.t); h.x = h.ox + (h.tx - h.ox) * e; h.y = h.oy + (h.ty - h.oy) * e; if (h.t >= 1) h.hold = R(2.5, 5); }
-        h.el.style.transform = `translate(${h.x.toFixed(1)}px,${h.y.toFixed(1)}px) scaleX(${-h.face}) rotate(${h.t < 1 ? -5 : 0}deg)`;
-      }
-      if (ship2) {
-        const a = ship2;
-        if (a.wait > 0) { a.wait -= dt; a.el.style.opacity = 0; }
-        else {
-          a.t += dt / a.dur; const x = a.ltr ? -200 + (W + 400) * a.t : W + 200 - (W + 400) * a.t;
-          a.el.style.opacity = 1; a.el.style.transform = `translate(${x.toFixed(1)}px,${a.y.toFixed(1)}px) scaleX(${a.ltr ? -1 : 1})`;
-          if (a.t >= 1) { a.t = 0; a.ltr = !a.ltr; a.y = H * R(.08, .32); a.wait = R(12, 25); }
-        }
+      direct(now);
+      for (const a of actors) { if (!a.on && now > a.fade) continue; a.tick(dt, now); }
+      // طلقة وحدة كل فترة: مدفع، أو سفينة حربية ظاهرة، أو دبابة ظاهرة واقفة عند طرفها
+      if (!ov && now > nextBurst) {
+        nextBurst = now + R(LT ? 12000 : 8000, LT ? 18000 : 13000);
+        const who = [...guns.map(g => () => shoot(g)), ...actors.filter(a => a.on && a.fire && (a.kind !== 'tank' || a.wait > 0) && (a.kind !== 'ship' || a.war)).map(a => () => a.fire())];
+        if (who.length) who[Math.floor(Math.random() * who.length)]();
       }
       // قصف بعيد على الأطراف، وقذيفة تسقط في البحر المفتوح
-      if (now > nextGlow) { nextGlow = now + R(LT ? 7000 : 2600, LT ? 13000 : 6500); const side = Math.floor(Math.random() * 4), gx = side < 2 ? R(0, W) : side === 2 ? 0 : W, gy = side < 2 ? (side ? H : 0) : R(0, H); glow.style.left = gx + 'px'; glow.style.top = gy + 'px'; anim(glow, [{ opacity: 0 }, { opacity: R(.55, .95), offset: .18 }, { opacity: 0 }], { duration: 1100, easing: 'ease-out' }); }
-      if (!ov && now > nextSea) { nextSea = now + R(LT ? 9000 : 4500, LT ? 15000 : 9000); for (let n = 0; n < 8; n++) { const x = R(60, W - 60), y = R(60, H - 60); if (water(x, y) && movers.every(m => Math.hypot(m.x - x, m.y - y) > 90)) { splash(x, y, R(.7, 1)); break; } } }
+      if (now > nextGlow) { nextGlow = now + R(LT ? 9000 : 6000, LT ? 15000 : 11000); const side = Math.floor(Math.random() * 4), gx = side < 2 ? R(0, W) : side === 2 ? 0 : W, gy = side < 2 ? (side ? H : 0) : R(0, H); glow.style.left = gx + 'px'; glow.style.top = gy + 'px'; anim(glow, [{ opacity: 0 }, { opacity: R(.55, .95), offset: .18 }, { opacity: 0 }], { duration: 1100, easing: 'ease-out' }); }
+      if (!ov && now > nextSea) { nextSea = now + R(LT ? 16000 : 12000, LT ? 26000 : 20000); for (let n = 0; n < 8; n++) { const x = R(60, W - 60), y = R(60, H - 60); if (water(x, y) && actors.every(m => m.kind !== 'ship' || Math.hypot(m.x - x, m.y - y) > 90)) { splash(x, y, R(.6, .85)); break; } } }
     };
     raf = requestAnimationFrame(tick);
     LV = { lay, ro, capture, expand, stop: () => { cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers.clear(); haze.remove(); } };
