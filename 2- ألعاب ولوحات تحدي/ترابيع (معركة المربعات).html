@@ -469,10 +469,10 @@ body.frenzy .board{animation:frz 1.6s ease-in-out infinite}
 /* ui-setup v1: شاشة الإعداد الموحدة (أساسي · إعدادات إضافية · للمشرف) */
 #setup .s-head{padding:.6rem 1.6rem .35rem}
 #setup .s-head h2{font-size:2rem}
-.s-body.uni{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);grid-template-areas:"modes teams" "size teams" "q teams" "more more" "admin admin";grid-template-rows:repeat(5,max-content);gap:.7rem 1rem;padding:.2rem 1.6rem 6.2rem;align-content:start}
+.s-body.uni{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);grid-template-areas:"modes teams" "size teams" "q map" "more more" "admin admin";grid-template-rows:repeat(5,max-content);gap:.7rem 1rem;padding:.2rem 1.6rem 6.2rem;align-content:start}
 .uni .card{padding:.75rem 1.05rem}
 .uni .card h3{font-size:1.15rem;margin:0 0 .5rem}
-.c-modes{grid-area:modes}.c-teams{grid-area:teams;align-self:start}.c-size{grid-area:size}.c-q{grid-area:q}.c-more{grid-area:more}.c-admin{grid-area:admin}
+.c-modes{grid-area:modes}.c-teams{grid-area:teams;align-self:start}.c-size{grid-area:size}.c-q{grid-area:q}.c-map{grid-area:map}.c-map .maps{display:grid;grid-template-columns:repeat(auto-fill,minmax(7.5rem,1fr));gap:.5rem}.mapb.rnd .rnd-i{display:grid;place-items:center;aspect-ratio:1;width:100%;max-width:5.5rem;margin:0 auto;font-size:2.6rem;border-radius:.8rem;background:rgba(127,127,127,.15)}.c-more{grid-area:more}.c-admin{grid-area:admin}
 .tagc{background:var(--neon);color:#fff;border-radius:99px;padding:.05em .75em;font-size:.8rem;font-weight:800}
 .pmodes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
 .pm{display:flex;flex-direction:column;align-items:flex-start;gap:.1rem;text-align:start;padding:.5rem .7rem;border-radius:1rem;background:var(--panel);border:1.5px solid var(--line);transition:.15s}
@@ -519,7 +519,7 @@ body.frenzy .board{animation:frz 1.6s ease-in-out infinite}
 .uni-foot .s-sum{flex:1;font-size:1.05rem;color:var(--ink);min-width:0}
 .uni-foot .btn.big{font-size:1.15rem;padding:.7em 1.6em}
 .hintb{border-color:var(--gold)!important}.hintb small{opacity:.8;font-weight:600}
-@media (max-width:900px){.s-body.uni{grid-template-columns:1fr;grid-template-areas:"modes" "teams" "size" "q" "more" "admin";grid-template-rows:repeat(6,max-content)}.pmodes,.sizes{grid-template-columns:repeat(2,minmax(0,1fr))}.uni-foot{flex-wrap:wrap}.uni-foot .s-sum{flex-basis:100%}.qrow{flex-wrap:wrap}.uni .t-cols{flex-wrap:wrap}}
+@media (max-width:900px){.s-body.uni{grid-template-columns:1fr;grid-template-areas:"modes" "teams" "size" "q" "map" "more" "admin";grid-template-rows:repeat(6,max-content)}.pmodes,.sizes{grid-template-columns:repeat(2,minmax(0,1fr))}.uni-foot{flex-wrap:wrap}.uni-foot .s-sum{flex-basis:100%}.qrow{flex-wrap:wrap}.uni .t-cols{flex-wrap:wrap}}
 </style>
 <style>/*perf-pass-2026-11-05*/@keyframes capLite{0%{transform:scale(.5) rotate(-10deg)}60%{transform:scale(1.14)}100%{transform:none}}.attract .cell.a-cap{animation-name:capLite}.attract .cell,.attract .face{transition:none!important}*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}</style>
 </head>
@@ -745,7 +745,7 @@ function loadPrefs() {
   if (!Array.isArray(p.teams) || p.teams.length < 2) p.teams = JSON.parse(JSON.stringify(DEFAULT_PREFS.teams));
   p.teams = p.teams.slice(0, 6);
   if (!SIZES.includes(p.size)) p.size = 10;
-  if (!MAPS[p.map]) p.map = 'classic';
+  if (!MAPS[p.map] && p.map !== 'random') p.map = 'classic';
   if (!Array.isArray(p.cats)) p.cats = CATS.map(c => c.key);
   if (!Array.isArray(p.levels) || !p.levels.length) p.levels = [1, 2, 3];
   // ui-setup v1: أول مرة بعد التحديث يتحول الإعداد إلى «كلاسيكي»، والمستوى القديم ينتقل للخيار الجديد
@@ -973,13 +973,13 @@ function renderSetup() {
   const ques = `<div class="card c-q"><h3>الأسئلة <span class="muted small">${P.source === 'bank' ? `${pool} سؤالاً` : P.source === 'verbal' ? '🎤 المقدّم يسأل' : '✍️ أسئلتي'}</span></h3>
     <div class="qrow"><span class="ql">المستوى</span><div class="seg">${LVL_UI.map(([id, nm]) => `<button data-lvl="${id}" class="${!P.wager && P.lvl === id ? 'on' : ''}">${nm}</button>`).join('')}<button data-lvl="bet" class="${P.wager ? 'on' : ''}" title="قبل كل سؤال يختار الفريق: سهل ➕5 · متوسط ⬛9 · صعب 🔷13">🎲 رهان</button></div></div>
     <div class="qrow"><span class="ql">المرحلة</span><div class="seg">${STAGES.map(s => `<button data-stage="${s}" class="${P.stage === s ? 'on' : ''}">${s}</button>`).join('')}</div></div></div>`;
+  const mapCard = `<div class="card c-map"><h3>الخريطة <span class="muted small">${P.map === 'random' ? '🎲 تنختار عند البدء' : esc(MAPS[P.map].name)}</span></h3>
+    <div class="maps">${Object.entries(MAPS).map(([k, m]) => `<button class="mapb ${P.map === k ? 'on' : ''}" data-set="map" data-v="${k}">${miniMap(k, P.size)}<b>${m.icon} ${m.name}</b><small>${m.desc}</small></button>`).join('')}<button class="mapb rnd ${P.map === 'random' ? 'on' : ''}" data-set="map" data-v="random"><span class="rnd-i">🎲</span><b>عشوائي</b><small>خريطة مفاجأة كل مرة</small></button></div></div>`;
   // ٢) إعدادات إضافية
   const bankHTML = `<div class="row-t">الفئات <span class="quick"><button data-quick="all">الكل</button><button data-quick="deen">الدينية</button><button data-quick="gen">العامة</button><button data-quick="none">لا شيء</button></span></div>
     <div class="chips">${CATS.map(c => `<button class="chipb ${catSet.has(c.key) ? 'on' : ''}" style="--cc:${c.color}" data-cat="${c.key}">${c.icon} ${esc(c.name)}</button>`).join('')}</div>`;
-  const more = `<details class="card more c-more" data-more="1" ${P.open1 ? 'open' : ''}><summary><b>⚙️ إعدادات إضافية</b><span class="muted small">الخريطة · القوانين · النسب · الأسئلة · الوقت</span></summary><div class="more-in"><div class="mgrid">
-    <div class="blk"><div class="row-t" style="margin-top:0">الخريطة</div>
-      <div class="maps">${Object.entries(MAPS).map(([k, m]) => `<button class="mapb ${P.map === k ? 'on' : ''}" data-set="map" data-v="${k}">${miniMap(k, P.size)}<b>${m.icon} ${m.name}</b><small>${m.desc}</small></button>`).join('')}</div>
-      <div class="row-t">المقاس بالضبط</div>${seg('size', SIZES.map(v => [v, `${v}×${v}`]))}
+  const more = `<details class="card more c-more" data-more="1" ${P.open1 ? 'open' : ''}><summary><b>⚙️ إعدادات إضافية</b><span class="muted small">المقاس · القوانين · النسب · الأسئلة · الوقت</span></summary><div class="more-in"><div class="mgrid">
+    <div class="blk"><div class="row-t" style="margin-top:0">المقاس بالضبط</div>${seg('size', SIZES.map(v => [v, `${v}×${v}`]))}
       <div class="row-t">طريقة اللعب</div>${seg('mode', [['turns', '🔄 بالدور', 'لكل فريق دوره'], ['speed', '⚡ الأسرع', 'سؤال للجميع']])}
       <div class="row-t">نهاية المعركة</div>${seg('endMode', [['turns', '🔢 بعدد الأدوار'], ['time', '⏱ بالوقت']])}
       ${P.endMode === 'turns' ? stepper('perTeam', 'أدوار لكل فريق', 2, 20, 1, `= ${P.perTeam * n} ${P.mode === 'speed' ? 'سؤالاً' : 'دوراً'}`) : stepper('minutes', 'مدة المعركة (دقائق)', 5, 90, 5, '')}
@@ -1015,7 +1015,7 @@ function renderSetup() {
       <div class="chips"><button class="btn glass" data-adm="export">⬇ حفظ ملف</button><button class="btn glass" data-adm="import">⬆ استرجاع ملف</button></div></div>
     </div></div></details>`;
   $('#sBody').className = 's-body uni';
-  $('#sBody').innerHTML = modes + teams + size + ques + more + admin;
+  $('#sBody').innerHTML = modes + teams + size + ques + mapCard + more + admin;
   const mName = md === 'custom' ? 'مخصص' : PLAY_MODES.find(x => x[0] === md)[2];
   $('#sSum').textContent = [mName, `${n} فرق`, `ساحة ${P.size}×${P.size}`, P.endMode === 'turns' ? `${P.perTeam * n} ${P.mode === 'speed' ? 'سؤالاً' : 'دوراً'}` : '', `≈ ${mins} دقيقة`, P.source === 'bank' ? P.stage : ''].filter(Boolean).join(' · ');
 }
@@ -1199,7 +1199,8 @@ function drawQuestion(lv) {
 /* ===================== بدء لعبة واستئنافها ===================== */
 function newGame() {
   clearTimers(); AN.clear(); closeDialog();
-  const N = P.size, n = P.teams.length, voids = voidCells(P.map, N);
+  const mapK = P.map === 'random' ? (ks => ks[Math.floor(Math.random() * ks.length)])(Object.keys(MAPS)) : P.map;
+  const N = P.size, n = P.teams.length, voids = voidCells(mapK, N);
   const cells = Array.from({ length: N * N }, (_, i) => ({ o: -1, f: 0, g: 0, m: null, s: 0, x: voids.has(i) ? 1 : 0 }));
   const free = shuffle(cells.map((_, i) => i).filter(i => !cells[i].x));
   const cnt = p => p > 0 ? Math.max(1, Math.round(free.length * p / 100)) : 0;
@@ -1210,7 +1211,7 @@ function newGame() {
   if (P.startCard && P.cards) teams.forEach(t => t.cards.push(randCard()));
   G = {
     ver: 1, N, teams, cells,
-    opt: { mode: P.mode, wager: P.wager, steal: P.steal && P.mode === 'turns', lockTaken: P.lockTaken, forts: P.forts, timer: P.timer, source: P.source, cats: P.cats.slice(), levels: P.levels.slice(), frenzy: P.frenzy, comeback: P.comeback, minutes: P.minutes, map: P.map, pm: P.pm, cards: P.cards, hint: P.hint, season: P.season, grad: !P.wager && P.lvl === 'grad', stage: P.source === 'bank' ? P.stage : '' },
+    opt: { mode: P.mode, wager: P.wager, steal: P.steal && P.mode === 'turns', lockTaken: P.lockTaken, forts: P.forts, timer: P.timer, source: P.source, cats: P.cats.slice(), levels: P.levels.slice(), frenzy: P.frenzy, comeback: P.comeback, minutes: P.minutes, map: mapK, pm: P.pm, cards: P.cards, hint: P.hint, season: P.season, grad: !P.wager && P.lvl === 'grad', stage: P.source === 'bank' ? P.stage : '' },
     total: P.endMode === 'turns' ? P.perTeam * n : null, timeLeft: P.endMode === 'time' ? P.minutes * 60000 : null, paused: false,
     turnNo: 0, phase: 'ready', active: 0, striker: -1, level: 0, shape: 'plus', strikes: 0, armed: null, q: null,
     decks: null, deck: [], custom: P.source === 'custom' ? parseCustom(P.custom) : [],
@@ -2292,6 +2293,14 @@ body.sk #attract{display:none!important}
 [data-theme=dark] body.sk .feed{background:rgba(24,5,22,.72);border:1px solid rgba(255,255,255,.08)}
 /* فحص التنسيق 2026-11-10: الوصف الصغير في بطاقات الإعداد كان رمادي باهت في الليلي (خصوصاً على البطاقة المختارة) */
 [data-theme=dark] body.sk button small,[data-theme=dark] body.sk summary span,[data-theme=dark] body.sk summary small,[data-theme=dark] body.sk .lnk{color:#ecd9e7!important}
+/* الوضع الليلي: النوافذ (القائمة، إنهاء اللعبة، السؤال، المساعدة…) نسخة ليلية من البطاقة بدل الكريمي — الكتابة الفاتحة تبان */
+[data-theme=dark] body.sk .dlg{background:radial-gradient(120% 90% at 50% 0%,#3d1546 0%,#22092b 72%)!important;color:#fff3f8!important;box-shadow:0 0 0 5px rgba(255,255,255,.14),0 0 0 8px var(--sk-acc),0 26px 50px rgba(0,0,0,.6)!important}
+[data-theme=dark] body.sk .dlg h2,[data-theme=dark] body.sk .dlg h3,[data-theme=dark] body.sk .dlg h4{color:#ffe7a6!important}
+[data-theme=dark] body.sk .dlg p,[data-theme=dark] body.sk .dlg li,[data-theme=dark] body.sk .dlg label,[data-theme=dark] body.sk .dlg b,[data-theme=dark] body.sk .dlg span:not(.emo):not(.tgi){color:inherit}
+[data-theme=dark] body.sk .dlg .muted,[data-theme=dark] body.sk .dlg small{color:#e6cfe0!important}
+[data-theme=dark] body.sk .dlg .mi{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.14)!important;color:#fff3f8!important}
+[data-theme=dark] body.sk .dlg .fld,[data-theme=dark] body.sk .dlg input,[data-theme=dark] body.sk .dlg textarea,[data-theme=dark] body.sk .dlg select{background:#2e0f36!important;color:#fff3f8!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)!important}
+[data-theme=dark] body.sk .ov{background:rgba(8,2,14,.66)!important}
 
 </style>
 <script id="sk-js">
