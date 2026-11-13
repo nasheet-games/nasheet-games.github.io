@@ -1618,6 +1618,9 @@ body.sk #sceneHost{opacity:.22}
   body.sk .q-foot{flex-wrap:wrap;justify-content:center;row-gap:.45rem}
   body.sk .q-foot .btn kbd{display:none}
 }
+/* شاشة الإعداد (داخل #home): كانت مقفلة overflow:hidden ومتوسّطة، فإذا انفتحت «إعدادات إضافية» تطلع برا الصفحة وما تنزل */
+body.sk #home{overflow-y:auto!important;overflow-x:hidden!important;justify-content:safe center!important;align-items:safe center!important;overscroll-behavior:contain}
+body.sk #home .setup.su{padding-bottom:7rem}
 
 </style>
 <script id="sk-js">
