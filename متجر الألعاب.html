@@ -415,7 +415,7 @@ select.chip.on{background-repeat:no-repeat;background-position:left .8em center;
 #uxFilt{inset-inline-start:1rem;background:#2a1d63;color:#fff;border:1px solid rgba(255,255,255,.18)}
 #uxFilt .nb{min-width:1.4rem;padding:0 .35rem;border-radius:99px;background:var(--gold);color:#100B2D;font-size:.8rem;text-align:center}
 #uxFilt .nb:empty{display:none}
-@media (min-width:1100px){#uxFilt{display:none}}
+@media (min-width:1100px){#uxFilt{display:none}#uxHelp{inset-inline-end:auto;left:4.4rem;bottom:6.5rem}}
 .ux-hide{opacity:0;pointer-events:none}
 @media (max-width:560px){#uxHelp{padding:.45rem .85rem .45rem .45rem;font-size:.92rem}#uxHelp .dot{width:2.1rem;height:2.1rem}}
 /* «فاجئني» داخل نافذة اقترح لي */
@@ -441,8 +441,10 @@ select.chip.on{background-repeat:no-repeat;background-position:left .8em center;
 #uxRail .st{position:absolute;left:50%;width:1.7rem;height:1.7rem;margin:-.85rem 0 0 -.85rem;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,255,255,.55);background:#1C1245;color:#C9C3E5;cursor:pointer;padding:0;transition:transform .2s,background .2s,color .2s}
 #uxRail .st svg{width:.95rem;height:.95rem}
 #uxRail .st.on{transform:scale(1.25);background:var(--gold);color:#100B2D;border-color:#fff}
-#uxRail .st .lb{position:absolute;inset-inline-start:calc(100% + .55rem);top:50%;transform:translateY(-50%);white-space:nowrap;padding:.25rem .6rem;border-radius:.6rem;background:#fff;color:#100B2D;font-size:.85rem;font-weight:800;opacity:0;pointer-events:none;transition:opacity .15s}
-#uxRail .st:hover .lb,#uxRail .st:focus-visible .lb{opacity:1}
+#uxRail .st .lb{position:absolute;left:calc(100% + .55rem);right:auto;top:50%;transform:translateY(-50%);white-space:nowrap;padding:.25rem .6rem;border-radius:.6rem;background:#fff;color:#100B2D;font-size:.85rem;font-weight:800;opacity:0;pointer-events:none;transition:opacity .15s}
+#uxRail:hover .st .lb,#uxRail .st:focus-visible .lb,#uxRail .st.on .lb{opacity:1}
+#uxRail .st.on .lb{background:var(--gold)}
+#uxRail:hover .st:not(:hover):not(.on) .lb{background:rgba(255,255,255,.88)}
 @media (max-width:1099px){#uxRail{display:none}}
 html{scroll-padding-top:calc(var(--barh) + 3.6rem)}
 @media (min-width:1100px){html{scroll-padding-top:calc(var(--barh) + 1rem)}}
