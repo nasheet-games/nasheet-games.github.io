@@ -354,6 +354,100 @@ footer.ft .wrap{position:relative;z-index:1;padding-block:.2rem 1.4rem}
 .gc h3.vh{flex:none;width:0;height:0;margin:0;font-size:0;line-height:0;overflow:visible}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 @media print{.bar,.filters,.hero,footer,.plan-ctl button,.pl .ctl button,#planBtns{display:none!important}body{background:#fff;color:#000}body::before{display:none}.pl li{background:#fff;border:1px solid #999;break-inside:avoid;color:#000}.pl .t{color:#000}.page{padding:0}}
+/* ux-v1 */
+:root{--barh:4.3rem}
+/* 1) بطاقات الأنماط */
+.kinds{padding-block:clamp(1rem,2.4vh,1.6rem) .4rem}
+.kinds h2{margin:0 0 .9rem;text-align:center;font-size:clamp(1.25rem,2.4vw,1.7rem)}
+.kinds h2 small{display:block;margin-top:.25rem;font-size:.9rem;font-weight:500;color:var(--mute)}
+.kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(.6rem,1.2vw,1rem)}
+.kc{position:relative;display:flex;flex-direction:column;gap:.35rem;text-align:start;padding:.9rem .95rem .85rem;border-radius:var(--r);border:1px solid var(--line);background:linear-gradient(160deg,var(--card),var(--card2));color:var(--ink);cursor:pointer;overflow:hidden;font:inherit;transition:transform .18s ease,border-color .18s ease}
+.kc:hover{transform:translateY(-3px);border-color:rgba(255,201,40,.55)}
+.kc:active{transform:translateY(0) scale(.98)}
+.kc:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.kc .kv{display:flex;height:3.6rem;margin-bottom:.15rem}
+.kc .kv img,.kc .kv i{width:3.6rem;height:3.6rem;border-radius:.8rem;object-fit:cover;border:2px solid rgba(255,255,255,.85);box-shadow:0 6px 14px rgba(0,0,0,.35);background:var(--bg2)}
+.kc .kv img+img{margin-inline-start:-1.4rem}
+.kc .kv img:nth-child(1){transform:rotate(-6deg)}.kc .kv img:nth-child(3){transform:rotate(6deg)}
+.kc b{font-size:1.05rem;line-height:1.3}
+.kc small{color:var(--mute);font-size:.82rem;line-height:1.45}
+.kc .kn{position:absolute;top:.7rem;inset-inline-end:.75rem;min-width:1.9rem;padding:.1rem .5rem;border-radius:99px;background:var(--gold);color:#100B2D;font-weight:900;font-size:.85rem;text-align:center}
+@media (max-width:900px){.kgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.kc .kv{height:2.9rem}.kc .kv img{width:2.9rem;height:2.9rem}.kc small{display:none}}
+/* 2) العمود الجانبي */
+.shop{display:block}
+.side .side-h{display:none}
+.sbox.mini{margin:0 0 .7rem}
+.sbox.mini input{font-size:1rem}
+@media (min-width:1100px){
+  .shop{display:grid;grid-template-columns:17rem minmax(0,1fr);gap:1.25rem;width:min(96rem,100%);margin-inline:auto;padding-inline:clamp(1rem,2vw,1.6rem);align-items:start}
+  .shop #results .wrap{padding-inline:0;width:100%}
+  .side{position:sticky!important;top:calc(var(--barh) + .9rem);max-height:calc(100vh - var(--barh) - 1.8rem);overflow:auto;border:1px solid var(--line);border-radius:var(--r);background:rgba(16,11,45,.86)!important;margin-top:1.4rem;scrollbar-width:thin}
+  .side .side-in{padding:1rem}
+  .side .side-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+  .side .side-h b{display:flex;gap:.45rem;align-items:center;font-size:1.05rem}
+  .side .side-x{display:none}
+  .side .chips{flex-direction:column;align-items:stretch;overflow:visible;flex-wrap:nowrap}
+  .side .chips .chip{width:100%;justify-content:center;text-align:center}
+  .side .chips .sep,.side .chips .sp{display:none}
+  .side .und{margin-top:.6rem}
+}
+@media (max-width:1099px){
+  .side{position:fixed!important;top:0;bottom:0;inset-inline-start:0;width:min(21rem,88vw);z-index:60;transform:translateX(105%);transition:transform .28s cubic-bezier(.3,.8,.3,1);overflow:auto;background:#140d36!important;border-inline-end:1px solid var(--line);box-shadow:-20px 0 40px rgba(0,0,0,.45)}
+  .side.open{transform:none}
+  .side .side-in{padding:1rem 1rem 6rem}
+  .side .side-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+  .side .side-h b{display:flex;gap:.45rem;align-items:center;font-size:1.1rem}
+  .side .chips{flex-direction:column;align-items:stretch;overflow:visible}
+  .side .chips .chip{width:100%;text-align:center;justify-content:center}
+  .side .chips .sep,.side .chips .sp{display:none}
+}
+.ux-veil{position:fixed;inset:0;z-index:55;background:rgba(5,3,18,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+.ux-veil.on{opacity:1;pointer-events:auto}
+body.ux-drawer #app{z-index:61}
+select.chip.on{background-repeat:no-repeat;background-position:left .8em center;background-size:1em}
+/* أزرار عائمة: «محتار؟» (يسار تحت) و«الفلترة» (يمين تحت، جوال وتابلت) */
+.ux-fab{position:fixed;bottom:max(1rem,env(safe-area-inset-bottom));z-index:50;display:inline-flex;align-items:center;gap:.5rem;padding:.55rem 1.05rem .55rem .6rem;border-radius:99px;border:0;font:inherit;font-weight:900;font-size:1rem;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.4),0 0 0 3px rgba(255,255,255,.12);transition:transform .16s ease,opacity .25s}
+.ux-fab:hover{transform:translateY(-2px)}.ux-fab:active{transform:scale(.96)}
+.ux-fab .dot{display:grid;place-items:center;width:2.4rem;height:2.4rem;border-radius:50%;background:rgba(16,11,45,.14)}
+.ux-fab .dot svg{width:1.45rem;height:1.45rem}
+#uxHelp{inset-inline-end:1rem;background:linear-gradient(180deg,#FFE071,#FFAC24);color:#100B2D}
+#uxHelp .dot{background:#100B2D;color:#FFC928}
+#uxFilt{inset-inline-start:1rem;background:#2a1d63;color:#fff;border:1px solid rgba(255,255,255,.18)}
+#uxFilt .nb{min-width:1.4rem;padding:0 .35rem;border-radius:99px;background:var(--gold);color:#100B2D;font-size:.8rem;text-align:center}
+#uxFilt .nb:empty{display:none}
+@media (min-width:1100px){#uxFilt{display:none}}
+.ux-hide{opacity:0;pointer-events:none}
+@media (max-width:560px){#uxHelp{padding:.45rem .85rem .45rem .45rem;font-size:.92rem}#uxHelp .dot{width:2.1rem;height:2.1rem}}
+/* «فاجئني» داخل نافذة اقترح لي */
+.wiz .surp{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;margin-top:.8rem}
+.wiz .surp svg{width:1.3rem;height:1.3rem}
+.wiz .surp.roll svg{animation:uxroll .7s cubic-bezier(.3,.6,.3,1)}
+@keyframes uxroll{to{transform:rotate(720deg) scale(1.15)}}
+/* 4) شريط التقدّم المتدرّج */
+#uxProg{position:fixed;top:var(--barh);inset-inline:0;height:4px;z-index:31;pointer-events:none;background:linear-gradient(270deg,#FFE071,#FFAC24 30%,#FF6FB5 65%,#8B5CF6);transform-origin:right center;transform:scaleX(0);will-change:transform}
+/* تبويبات الأقسام (جوال وتابلت) */
+#uxTabs{position:fixed;top:calc(var(--barh) + 4px);inset-inline:0;z-index:29;display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none;padding:.45rem .8rem;background:rgba(16,11,45,.9);border-bottom:1px solid var(--line);transform:translateY(-120%);transition:transform .25s ease}
+#uxTabs::-webkit-scrollbar{display:none}
+#uxTabs.on{transform:none}
+#uxTabs button{flex:none;display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .75rem;border-radius:99px;border:1px solid var(--line);background:var(--bg2);color:var(--mute);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer}
+#uxTabs button svg{width:1rem;height:1rem}
+#uxTabs button.on{background:var(--gold);color:#100B2D;border-color:transparent}
+@media (min-width:1100px){#uxTabs{display:none}}
+/* السكة الجانبية بمحطات الأقسام (لابتوب) */
+#uxRail{position:fixed;top:calc(var(--barh) + 1.2rem);bottom:1.4rem;inset-inline-end:.7rem;width:2.2rem;z-index:28;opacity:0;pointer-events:none;transition:opacity .3s}
+#uxRail.on{opacity:1;pointer-events:auto}
+#uxRail .tr{position:absolute;top:0;bottom:0;left:50%;width:4px;margin-left:-2px;border-radius:4px;background:rgba(201,195,229,.16);overflow:hidden}
+#uxRail .fl{position:absolute;inset:0;border-radius:4px;background:linear-gradient(180deg,#FFE071,#FFAC24 30%,#FF6FB5 65%,#8B5CF6);transform-origin:top center;transform:scaleY(0);will-change:transform}
+#uxRail .st{position:absolute;left:50%;width:1.7rem;height:1.7rem;margin:-.85rem 0 0 -.85rem;border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,255,255,.55);background:#1C1245;color:#C9C3E5;cursor:pointer;padding:0;transition:transform .2s,background .2s,color .2s}
+#uxRail .st svg{width:.95rem;height:.95rem}
+#uxRail .st.on{transform:scale(1.25);background:var(--gold);color:#100B2D;border-color:#fff}
+#uxRail .st .lb{position:absolute;inset-inline-start:calc(100% + .55rem);top:50%;transform:translateY(-50%);white-space:nowrap;padding:.25rem .6rem;border-radius:.6rem;background:#fff;color:#100B2D;font-size:.85rem;font-weight:800;opacity:0;pointer-events:none;transition:opacity .15s}
+#uxRail .st:hover .lb,#uxRail .st:focus-visible .lb{opacity:1}
+@media (max-width:1099px){#uxRail{display:none}}
+html{scroll-padding-top:calc(var(--barh) + 3.6rem)}
+@media (min-width:1100px){html{scroll-padding-top:calc(var(--barh) + 1rem)}}
+@media (prefers-reduced-motion:reduce){.side,#uxTabs,.kc,.ux-fab{transition:none}.wiz .surp.roll svg{animation:none}}
+/* /ux-v1 */
 </style>
 </head>
 <body>
@@ -602,7 +696,10 @@ function viewHome() {
       <p class="sub">${P.length} لعبة وتحدٍّ ممتع للحلقة والفصل والبرامج. اكتب مثل ما تتكلم، ونطلع لك الأنسب.</p>
       <div class="sbox">${ic('search')}<input id="q" type="search" aria-label="ابحث في الألعاب" placeholder="مثل: عندي ٣ فرق وربع ساعة وأبغى شي حماسي" autocomplete="off" value="${esc(state.q)}"><button class="btn gold" id="rnd">${ic('sparkle')}<span class="lbl">اقترح لي</span></button></div>
       <div class="chip-ex">${EXAMPLES.map(e => `<button data-ex="${esc(e)}">${esc(e)}</button>`).join('')}</div></div></section>
-    <section class="filters"><div class="wrap">
+    ${kindsHTML()}
+    <div class="shop"><aside class="filters side" id="side" aria-label="البحث والفلترة"><div class="side-in">
+      <div class="side-h"><b>${ic('search')}ابحث وفلتر</b><button class="ibtn side-x" id="sideX" aria-label="إغلاق">${ic('x')}</button></div>
+      <div class="sbox mini">${ic('search')}<input id="q2" type="search" aria-label="ابحث في الألعاب" placeholder="ابحث باسم لعبة أو فكرة" autocomplete="off" value="${esc(state.q)}"></div>
       <div class="chips" role="group" aria-label="الفلاتر">
         <select class="chip${on(state.age)}" id="fAge" aria-label="الفئة العمرية"><option value="">كل الأعمار</option>${['ابتدائي', 'متوسط', 'ثانوي', 'جامعي', 'كبار'].map(a => `<option ${state.age === a ? 'selected' : ''}>${a}</option>`).join('')}</select>
         <select class="chip${on(state.time)}" id="fTime" aria-label="الوقت المتاح"><option value="0">الوقت المتاح</option>${[5, 10, 15, 20, 30, 45, 60].map(n => `<option value="${n}" ${state.time === n ? 'selected' : ''}>${n} دقيقة</option>`).join('')}</select>
@@ -615,8 +712,8 @@ function viewHome() {
         <span class="sp"></span>
         <select class="chip" id="fSort" aria-label="الترتيب">${[['best', 'الأنسب'], ['hot', 'الأكثر حماساً'], ['short', 'الأقصر وقتاً'], ['easy', 'الأسهل'], ['abc', 'أبجدياً']].map(([v, t]) => `<option value="${v}" ${state.sort === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
         <button class="chip clear" id="fClear"${isFiltered() || state.sort !== 'best' ? '' : ' hidden'}>${ic('x')}مسح</button>
-      </div><div class="und" id="und" hidden></div></div></section>
-    <div id="results"></div>`;
+      </div><div class="und" id="und" hidden></div></div></aside>
+    <div id="results"></div></div>`;
   paintResults();
   const qi = $('#q'); qi.addEventListener('input', () => { state.q = qi.value; paintResults(); });
   qi.addEventListener('keydown', e => { if (e.key === 'Enter') $('#results').scrollIntoView({ block: 'start' }); });
@@ -629,7 +726,7 @@ function paintResults() {
   const u = understood(R); und.hidden = !u.length; und.innerHTML = u.length ? `فهمت: ${u.map(x => `<b>${esc(x)}</b>`).join('')}` : '';
   if (!isFiltered() && state.sort === 'best') {
     box.innerHTML = SECTIONS.map(s => { const L = P.filter(p => p.section === s.id); if (!L.length) return ''; const lead = L.find(p => p.lead) || null; const ordered = lead ? [lead, ...L.filter(p => p !== lead)] : L; cardN = 0;
-      return `<section class="shelf"><div class="wrap"><header><h2>${esc(s.t)}</h2><p>${esc(s.note)}</p></header><div class="grid">${ordered.map(p => card(p)).join('')}</div></div></section>`; }).join('');
+      return `<section class="shelf" id="sec-${s.id}"><div class="wrap"><header><h2>${esc(s.t)}</h2><p>${esc(s.note)}</p></header><div class="grid">${ordered.map(p => card(p)).join('')}</div></div></section>`; }).join('');
     return;
   }
   if (!list.length) { const sg = state.q ? suggest(state.q) : []; box.innerHTML = `<div class="empty wrap"><h2>ما لقينا لعبة بهالشروط</h2><p>خفّف شرط أو شرطين، أو امسح الفلاتر.</p>${sg.length ? `<p>تقصد: ${sg.map(p => `<a href="#/game/${p.id}">${esc(p.name)}</a>`).join(' · ')}؟</p>` : ''}<button class="btn sun" id="fClear2">مسح الفلاتر</button></div>`; return; }
@@ -754,6 +851,95 @@ function openWiz() { paintWiz(); const d = $('#wiz'); if (!d.open) d.showModal()
 $('#wizBtn').addEventListener('click', openWiz);
 $('#wizX').addEventListener('click', () => $('#wiz').close());
 $('#wiz').addEventListener('click', e => { if (e.target === $('#wiz')) return $('#wiz').close(); const b = e.target.closest('[data-wv]'); if (!b) { if (e.target.closest('.ri')) $('#wiz').close(); return; } const [k, v] = b.dataset.wv.split(':'); const val = k === 'age' ? v : +v; WZ[k] = WZ[k] === val ? (k === 'age' ? '' : 0) : val; Mem.set('store.wiz', WZ); paintWiz(); });
+/* ux-v1 */
+const KIND_IC = { surprise: 'door', questions: 'q', interludes: 'timer', boards: 'castle', pictures: 'image', movement: 'run', print: 'print', banks: 'library' };
+function kindsHTML() {
+  const cards = SECTIONS.map(s => {
+    const L = P.filter(p => p.section === s.id); if (!L.length) return '';
+    const pics = L.filter(p => p.cover).slice(0, 3).map(p => `<img src="${cov(p)}" alt="" loading="lazy" decoding="async">`).join('') || `<i></i>`;
+    return `<button class="kc" data-kind="${s.id}"><span class="kn">${L.length}</span><span class="kv">${pics}</span><b>${esc(s.t)}</b><small>${esc(s.note || '')}</small></button>`;
+  }).join('');
+  return `<section class="kinds"><div class="wrap"><h2>ايش نمط اللعبة اللي في بالك؟<small>اختر النمط ونوديك له مباشرة، أو انزل وتصفّح كل الألعاب</small></h2><div class="kgrid">${cards}</div></div></section>`;
+}
+(() => {
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches, B = document.body;
+  const root = document.documentElement, bar = document.querySelector('.bar');
+  const setBar = () => root.style.setProperty('--barh', (bar ? bar.offsetHeight : 68) + 'px');
+  addEventListener('resize', setBar); setBar();
+  const icon = n => `<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+  /* عناصر ثابتة */
+  B.insertAdjacentHTML('beforeend', `<div id="uxProg" aria-hidden="true"></div><nav id="uxTabs" aria-label="أقسام المتجر"></nav><div id="uxRail" aria-label="التنقل بين الأقسام"><span class="tr"><i class="fl"></i></span></div>
+    <button class="ux-fab" id="uxHelp" aria-label="محتار؟ اقترح لي لعبة"><span class="dot">${icon('dice')}</span>محتار؟</button>
+    <button class="ux-fab" id="uxFilt" aria-label="البحث والفلترة">${icon('search')}الفلترة<span class="nb" id="uxFn"></span></button><div class="ux-veil" id="uxVeil"></div>`);
+  const prog = $('#uxProg'), tabs = $('#uxTabs'), rail = $('#uxRail'), fill = rail.querySelector('.fl');
+  const isHome = () => (location.hash || '#/') === '#/';
+  const shelves = () => [...document.querySelectorAll('.shelf[id^="sec-"]')];
+  const go = id => { const el = document.getElementById('sec-' + id); if (el) el.scrollIntoView({ behavior: RM ? 'auto' : 'smooth', block: 'start' }); };
+  /* بطاقات الأنماط والتبويبات والمحطات: كلها تنقل للقسم */
+  document.addEventListener('click', e => {
+    const k = e.target.closest('[data-kind],[data-jump]'); if (!k) return;
+    e.preventDefault(); const id = k.dataset.kind || k.dataset.jump;
+    if (!isHome()) { location.hash = '#/'; setTimeout(() => go(id), 120); return; }
+    if (isFiltered() || state.sort !== 'best') { clearState(); viewHome(); setTimeout(() => go(id), 60); return; }
+    go(id);
+  });
+  /* بناء التبويبات والمحطات حسب الرفوف الحالية */
+  function build() {
+    const S = shelves(), on = isHome() && S.length > 1;
+    tabs.innerHTML = on ? S.map(s => { const id = s.id.slice(4), m = SECTIONS.find(x => x.id === id); return `<button data-jump="${id}">${icon(KIND_IC[id] || 'grid')}${esc(m ? m.t : id)}</button>`; }).join('') : '';
+    rail.querySelectorAll('.st').forEach(x => x.remove());
+    if (on) {
+      const H = document.documentElement.scrollHeight - innerHeight;
+      S.forEach(s => { const id = s.id.slice(4), m = SECTIONS.find(x => x.id === id), y = Math.min(1, Math.max(0, (s.offsetTop - 60) / Math.max(1, H)));
+        rail.insertAdjacentHTML('beforeend', `<button class="st" data-jump="${id}" style="top:${(y * 100).toFixed(2)}%" aria-label="${esc(m ? m.t : id)}">${icon(KIND_IC[id] || 'grid')}<span class="lb">${esc(m ? m.t : id)}</span></button>`); });
+    }
+    tick();
+  }
+  /* السكرول: الشريط المتدرّج + القسم الحالي */
+  let raf = 0;
+  function tick() {
+    raf = 0; const H = document.documentElement.scrollHeight - innerHeight, p = H > 0 ? Math.min(1, scrollY / H) : 0;
+    prog.style.transform = `scaleX(${p.toFixed(4)})`; fill.style.transform = `scaleY(${p.toFixed(4)})`;
+    const S = shelves(), first = S[0], past = first && first.getBoundingClientRect().top < innerHeight * .5;
+    tabs.classList.toggle('on', !!(isHome() && past)); rail.classList.toggle('on', !!(isHome() && S.length > 1 && past));
+    let cur = null; for (const s of S) if (s.getBoundingClientRect().top < innerHeight * .35) cur = s.id.slice(4);
+    tabs.querySelectorAll('button').forEach(b => { const o = b.dataset.jump === cur; if (o !== b.classList.contains('on')) { b.classList.toggle('on', o); if (o) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' }); } });
+    rail.querySelectorAll('.st').forEach(b => b.classList.toggle('on', b.dataset.jump === cur));
+    const nb = $('#uxFn'); if (nb) { const n = [state.q.trim(), state.sec, state.age, state.type, state.teams, state.time].filter(Boolean).length + state.flags.size; nb.textContent = n ? n : ''; }
+    $('#uxFilt').classList.toggle('ux-hide', !isHome());
+  }
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
+  addEventListener('resize', () => setTimeout(build, 150));
+  new MutationObserver(() => setTimeout(build, 30)).observe($('#app'), { childList: true, subtree: false });
+  const watchRes = () => { const r = $('#results'); if (r && !r.dataset.ux) { r.dataset.ux = 1; new MutationObserver(() => setTimeout(build, 30)).observe(r, { childList: true }); } };
+  new MutationObserver(watchRes).observe($('#app'), { childList: true }); watchRes();
+  addEventListener('load', build); addEventListener('hashchange', () => setTimeout(build, 60));
+  /* البحث المصغّر في العمود يتزامن مع البحث الكبير */
+  document.addEventListener('input', e => { if (e.target.id === 'q2') { state.q = e.target.value; const q = $('#q'); if (q) q.value = state.q; paintResults(); } else if (e.target.id === 'q') { const q2 = $('#q2'); if (q2) q2.value = e.target.value; } });
+  /* درج الفلترة (جوال وتابلت) */
+  const veil = $('#uxVeil');
+  const drawer = o => { const s = $('#side'); if (!s) return; const app = $('#app'); if (veil.parentElement !== app) app.append(veil); B.classList.toggle('ux-drawer', o); s.classList.toggle('open', o); veil.classList.toggle('on', o); if (o) setTimeout(() => { const q = $('#q2'); if (q && matchMedia('(hover: hover)').matches) q.focus(); }, 300); };
+  $('#uxFilt').addEventListener('click', () => drawer(true));
+  veil.addEventListener('click', () => drawer(false));
+  document.addEventListener('click', e => { if (e.target.closest('#sideX')) drawer(false); });
+  addEventListener('keydown', e => { if (e.key === 'Escape') drawer(false); });
+  /* «محتار؟» يفتح اقترح لي + «فاجئني» */
+  $('#uxHelp').addEventListener('click', () => { if (state.age) WZ.age = state.age; if (state.time) WZ.time = state.time; if (state.teams) WZ.teams = state.teams; openWiz(); });
+  const wizIn = document.querySelector('#wiz .in');
+  if (wizIn && !wizIn.querySelector('.surp')) wizIn.insertAdjacentHTML('beforeend', `<button class="btn gold surp" id="uxSurp">${icon('dice')}فاجئني بلعبة</button>`);
+  document.addEventListener('click', e => {
+    const b = e.target.closest('#uxSurp'); if (!b) return;
+    let L = search('', { age: WZ.age, time: WZ.time, teams: WZ.teams, flags: [], sort: 'best' }).list.filter(p => p.file && /\.html?$/i.test(p.file));
+    if (!L.length) L = P.filter(p => p.file && /\.html?$/i.test(p.file));
+    const p = L[Math.floor(Math.random() * L.length)];
+    b.classList.remove('roll'); void b.offsetWidth; b.classList.add('roll');
+    setTimeout(() => { $('#wiz').close(); location.hash = '#/game/' + p.id; }, RM ? 0 : 650);
+  });
+  const wd = $('#wiz'), hideFab = () => $('#uxHelp').classList.toggle('ux-hide', wd.open);
+  new MutationObserver(hideFab).observe(wd, { attributes: true, attributeFilter: ['open'] });
+  setTimeout(build, 50);
+})();
+/* /ux-v1 */
 paintCounts(); route();
 
 /* ---------- الأرضية أسفل الصفحة ---------- */
