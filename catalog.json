@@ -425,7 +425,7 @@
   },
   {
    "id": "huruf",
-   "name": "حروف",
+   "name": "ساحة الحروف",
    "section": "questions",
    "religious": false,
    "tagline": "وصّل خلاياك بين ضلعين",
@@ -455,7 +455,9 @@
     "تحدي حروف",
     "لعبة الحروف",
     "فرقتين",
-    "وناسة"
+    "وناسة",
+    "ساحة الحروف",
+    "ساحة"
    ],
    "ages": [
     "ابتدائي",
@@ -505,7 +507,7 @@
    "color": "#c98a1f",
    "deep": "#5a3a00",
    "kind": "تشغيل",
-   "url": "https://nasheet-games.github.io/1-%20%D9%85%D8%B3%D8%A7%D8%A8%D9%82%D8%A7%D8%AA%20%D8%A3%D8%B3%D8%A6%D9%84%D8%A9/%D8%AD%D8%B1%D9%88%D9%81.html",
+   "url": "https://nasheet-games.github.io/1-%20%D9%85%D8%B3%D8%A7%D8%A8%D9%82%D8%A7%D8%AA%20%D8%A3%D8%B3%D8%A6%D9%84%D8%A9/%D8%B3%D8%A7%D8%AD%D8%A9%20%D8%A7%D9%84%D8%AD%D8%B1%D9%88%D9%81.html",
    "cover": "https://nasheet-games.github.io/%D9%85%D9%84%D9%81%D8%A7%D8%AA%20%D8%A7%D9%84%D9%85%D8%AA%D8%AC%D8%B1/covers/huruf.webp",
    "logo": "https://nasheet-games.github.io/%D9%85%D9%84%D9%81%D8%A7%D8%AA%20%D8%A7%D9%84%D9%85%D8%AA%D8%AC%D8%B1/logos/huruf.webp",
    "shots": [
