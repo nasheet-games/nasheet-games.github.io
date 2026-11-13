@@ -415,7 +415,7 @@ select.chip.on{background-repeat:no-repeat;background-position:left .8em center;
 #uxFilt{inset-inline-start:1rem;background:#2a1d63;color:#fff;border:1px solid rgba(255,255,255,.18)}
 #uxFilt .nb{min-width:1.4rem;padding:0 .35rem;border-radius:99px;background:var(--gold);color:#100B2D;font-size:.8rem;text-align:center}
 #uxFilt .nb:empty{display:none}
-@media (min-width:1100px){#uxFilt{display:none}#uxHelp{inset-inline-end:auto;left:4.4rem;bottom:6.5rem}}
+@media (min-width:1100px){#uxFilt{display:none}}
 .ux-hide{opacity:0;pointer-events:none}
 @media (max-width:560px){#uxHelp{padding:.45rem .85rem .45rem .45rem;font-size:.92rem}#uxHelp .dot{width:2.1rem;height:2.1rem}}
 /* «فاجئني» داخل نافذة اقترح لي */
@@ -423,6 +423,14 @@ select.chip.on{background-repeat:no-repeat;background-position:left .8em center;
 .wiz .surp svg{width:1.3rem;height:1.3rem}
 .wiz .surp.roll svg{animation:uxroll .7s cubic-bezier(.3,.6,.3,1)}
 @keyframes uxroll{to{transform:rotate(720deg) scale(1.15)}}
+/* «محتار؟» في الشريط العلوي (بدل أيقونة ✨) */
+.ux-pick{display:inline-flex;align-items:center;gap:.45rem;height:2.75rem;padding:0 1rem 0 .3rem;border-radius:99px;border:0;cursor:pointer;font:inherit;font-weight:900;font-size:1rem;color:#100B2D;background:linear-gradient(180deg,#FFE071,#FFAC24);box-shadow:0 6px 16px -6px rgba(255,172,36,.75),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .15s ease}
+.ux-pick:hover{transform:translateY(-1px)}.ux-pick:active{transform:scale(.96)}
+.ux-pick:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.ux-pick .dot{display:grid;place-items:center;width:2.2rem;height:2.2rem;border-radius:50%;background:#100B2D;color:#FFC928}
+.ux-pick .dot svg{width:1.3rem;height:1.3rem}
+.ux-pick:hover .dot svg{animation:uxroll .7s cubic-bezier(.3,.6,.3,1)}
+@media (max-width:420px){.ux-pick{padding-inline-end:.75rem;font-size:.92rem;height:2.5rem}.ux-pick .dot{width:2rem;height:2rem}}
 /* 4) شريط التقدّم المتدرّج */
 #uxProg{position:fixed;top:var(--barh);inset-inline:0;height:4px;z-index:31;pointer-events:none;background:linear-gradient(270deg,#FFE071,#FFAC24 30%,#FF6FB5 65%,#8B5CF6);transform-origin:right center;transform:scaleX(0);will-change:transform}
 /* تبويبات الأقسام (جوال وتابلت) */
@@ -871,7 +879,6 @@ function kindsHTML() {
   const icon = n => `<svg class="ic" aria-hidden="true"><use href="#i-${n}"/></svg>`;
   /* عناصر ثابتة */
   B.insertAdjacentHTML('beforeend', `<div id="uxProg" aria-hidden="true"></div><nav id="uxTabs" aria-label="أقسام المتجر"></nav><div id="uxRail" aria-label="التنقل بين الأقسام"><span class="tr"><i class="fl"></i></span></div>
-    <button class="ux-fab" id="uxHelp" aria-label="محتار؟ اقترح لي لعبة"><span class="dot">${icon('dice')}</span>محتار؟</button>
     <button class="ux-fab" id="uxFilt" aria-label="البحث والفلترة">${icon('search')}الفلترة<span class="nb" id="uxFn"></span></button><div class="ux-veil" id="uxVeil"></div>`);
   const prog = $('#uxProg'), tabs = $('#uxTabs'), rail = $('#uxRail'), fill = rail.querySelector('.fl');
   const isHome = () => (location.hash || '#/') === '#/';
@@ -908,7 +915,8 @@ function kindsHTML() {
     tabs.querySelectorAll('button').forEach(b => { const o = b.dataset.jump === cur; if (o !== b.classList.contains('on')) { b.classList.toggle('on', o); if (o) b.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' }); } });
     rail.querySelectorAll('.st').forEach(b => b.classList.toggle('on', b.dataset.jump === cur));
     const nb = $('#uxFn'); if (nb) { const n = [state.q.trim(), state.sec, state.age, state.type, state.teams, state.time].filter(Boolean).length + state.flags.size; nb.textContent = n ? n : ''; }
-    $('#uxFilt').classList.toggle('ux-hide', !isHome());
+    const ft = document.querySelector('footer.ft'), atEnd = ft && ft.getBoundingClientRect().top < innerHeight - 40;
+    $('#uxFilt').classList.toggle('ux-hide', !isHome() || !!atEnd);
   }
   addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
   addEventListener('resize', () => setTimeout(build, 150));
@@ -926,7 +934,8 @@ function kindsHTML() {
   document.addEventListener('click', e => { if (e.target.closest('#sideX')) drawer(false); });
   addEventListener('keydown', e => { if (e.key === 'Escape') drawer(false); });
   /* «محتار؟» يفتح اقترح لي + «فاجئني» */
-  $('#uxHelp').addEventListener('click', () => { if (state.age) WZ.age = state.age; if (state.time) WZ.time = state.time; if (state.teams) WZ.teams = state.teams; openWiz(); });
+  const wb = $('#wizBtn'); if (wb) { wb.className = 'ux-pick'; wb.title = 'محتار؟ اقترح لي لعبة'; wb.innerHTML = `<span class="dot">${icon('dice')}</span><span class="tx">محتار؟</span>`;
+    wb.addEventListener('click', () => { if (state.age) WZ.age = state.age; if (state.time) WZ.time = state.time; if (state.teams) WZ.teams = state.teams; paintWiz(); }); }
   const wizIn = document.querySelector('#wiz .in');
   if (wizIn && !wizIn.querySelector('.surp')) wizIn.insertAdjacentHTML('beforeend', `<button class="btn gold surp" id="uxSurp">${icon('dice')}فاجئني بلعبة</button>`);
   document.addEventListener('click', e => {
@@ -937,8 +946,6 @@ function kindsHTML() {
     b.classList.remove('roll'); void b.offsetWidth; b.classList.add('roll');
     setTimeout(() => { $('#wiz').close(); location.hash = '#/game/' + p.id; }, RM ? 0 : 650);
   });
-  const wd = $('#wiz'), hideFab = () => $('#uxHelp').classList.toggle('ux-hide', wd.open);
-  new MutationObserver(hideFab).observe(wd, { attributes: true, attributeFilter: ['open'] });
   setTimeout(build, 50);
 })();
 /* /ux-v1 */
