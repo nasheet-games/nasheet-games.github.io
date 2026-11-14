@@ -816,6 +816,62 @@ select.field option{background:var(--bg2);color:var(--ink)}
 @media (max-width:420px){.wzs b{display:none}.wzs{flex:none}.wz-steps{justify-content:center;gap:.5rem}}
 @media (prefers-reduced-motion:reduce){.wz-go.last{animation:none}}
 
+/* زر البدء مقفل لين آخر خطوة */
+.wz-go:disabled{opacity:.45;filter:grayscale(1);box-shadow:none;cursor:not-allowed;transform:none!important}
+/* نافذة الشعار الصغيرة */
+.emb-pop{position:fixed;z-index:120;width:min(31rem,calc(100vw - 16px));padding:.6rem .7rem .7rem;border-radius:1.1rem;background:var(--bg2);border:1.5px solid var(--gold);box-shadow:0 18px 40px rgba(0,0,0,.35);animation:epIn .16s ease both}
+@keyframes epIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.emb-pop .ep-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem}
+.emb-pop .ep-h b{font-family:WzHype,var(--display);font-weight:400;font-size:1.15rem}
+.emb-pop .ep-x{width:1.9rem;height:1.9rem;border-radius:.6rem;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line)}
+.emb-pop .ep-g{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:.35rem}
+.emb-pop .ep-g button{display:flex;flex-direction:column;align-items:center;gap:.1rem;padding:.3rem .1rem;border-radius:.75rem;background:var(--panel2);border:2px solid var(--line);transition:transform .12s}
+.emb-pop .ep-g button:hover{transform:translateY(-2px);border-color:var(--gold)}
+.emb-pop .ep-g button.on{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 16%,var(--panel2))}
+.emb-pop .sk-temo{font-size:1.85rem;line-height:1}
+.emb-pop small{font-size:.66rem;font-weight:800;color:var(--ink2);white-space:nowrap}
+@media (max-width:520px){.emb-pop .ep-g{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* v1.2: الشريط السفلي جزء من الصفحة (ما يغطي) → ما يطلع سكرول بدون داعي */
+#setup .s-foot.wz-foot{position:static;flex:none;pointer-events:auto}
+#setup .s-body.wz{padding-bottom:.8rem;scrollbar-width:thin}
+/* القوانين: عمودين */
+.rules-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.55fr);gap:.85rem;align-items:stretch}
+.rules-cols .wz-sec{padding-bottom:.75rem}
+.rlist{display:flex;flex-direction:column;gap:.45rem}
+.rlist .tgl{background:var(--panel2);border:1px solid var(--line);border-radius:.9rem;padding:.55rem .75rem}
+.rlist .tgl b{font-family:WzHype,var(--display);font-weight:400;font-size:1.2rem}
+.rlist .tgl small{font-size:.8rem}
+.rgrid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.rgrid2 .rc{padding:.25rem .7rem .5rem}
+.rgrid2 .rc .tgl{padding:.35rem 0}
+.rgrid2 .rc-t{margin:.35rem 0 .35rem;font-size:.95rem}
+.rc.off{opacity:.6}
+.rc.off .muted{font-size:.8rem}
+.rgrid2 .mini-row{margin-top:.35rem;gap:.35rem}
+.rgrid2 .seg.mini button{padding:.22rem .5rem;font-size:.8rem}
+.cats-sec .chips{gap:.3rem}
+.cats-sec .chipb{padding:.22rem .65rem;font-size:.85rem}
+.chip-sep{font-weight:800;color:var(--ink3);font-size:.82rem;align-self:center;margin-inline:.5rem .1rem}
+.cats-sec .quick{order:3}
+.names-row .seg.mini{flex:none}
+/* موسم البطولة */
+.season-sec{--tier:linear-gradient(180deg,#ffe082,#c9962f);--tc1:#a87400;background:linear-gradient(100deg,color-mix(in srgb,#f3c94a 16%,var(--panel2)),var(--panel) 65%);border-color:color-mix(in srgb,#c9962f 40%,var(--line))}
+[data-theme=dark] .season-sec{--tc1:#f3d98f}
+.season-sec .wz-h h3{font-family:WzFierce,var(--display)}
+.season-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1rem;align-items:start}
+.season-how{margin:0;padding-inline-start:1.3rem;display:grid;gap:.3rem;font-size:.98rem;font-weight:600;color:var(--ink2);line-height:1.55}
+.season-how li::marker{font-family:WzComp,var(--display);font-weight:800;color:var(--gold2)}
+.season-how b{color:var(--ink)}
+.season-pick .seg.list{max-height:9.5rem;overflow:auto}
+.season-pick .seg.list button{padding:.4rem .7rem}
+.emb-mini{order:3;align-items:center;gap:.3rem;margin-inline-start:auto}
+.emb-mini .ql{font-weight:800;color:var(--ink2);font-size:.85rem;margin-inline-end:.2rem}
+.teams-sec .tgrid{margin-top:.2rem}
+.wz-t .t-emo{width:4.6rem;height:4.6rem}.wz-t .t-emo .sk-temo{font-size:2.5rem}
+@media (max-width:1000px){.rules-cols,.season-grid{grid-template-columns:1fr}}
+@media (max-width:760px){.rgrid2{grid-template-columns:1fr}.wz-foot{padding:.5rem .7rem}}
+
 /* team-emblems v1 */
 body[data-emb=kids] .sk-temo[data-e="🦅"],body[data-emb=kids] .sk-temo[data-e="🐎"],body[data-emb=kids] .sk-temo[data-e="🦁"],body[data-emb=kids] .sk-temo[data-e="🐺"],body[data-emb=kids] .sk-temo[data-e="🦂"],body[data-emb=kids] .sk-temo[data-e="🦈"],body[data-emb=kids] .sk-temo[data-e="🐪"],body[data-emb=kids] .sk-temo[data-e="🐆"],body[data-emb=kids] .sk-temo[data-e="🦌"],body[data-emb=kids] .sk-temo[data-e="🐐"],body[data-emb=kids] .sk-temo[data-e="🗼"],body[data-emb=kids] .sk-temo[data-e="🗡"],body[data-emb=kids] .sk-temo[data-e="🪶"],body[data-emb=kids] .sk-temo[data-e="🌩"],body[data-emb=kids] .sk-temo[data-e="☄"],body[data-emb=kids] .sk-temo[data-e="⛵"]{display:inline-block;width:1.45em;height:1.45em;vertical-align:-.36em;background:center/contain no-repeat;text-indent:300%;white-space:nowrap;overflow:hidden;border-radius:0!important;box-shadow:none!important;filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))}
 body[data-emb=kids] .sk-temo[data-e="🦅"]{background-image:url(data:image/webp;base64,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)}
@@ -2002,7 +2058,7 @@ function roundEvent(r) {
 }
 
 const defSetup = () => ({ teams: TEAM_PRESETS.slice(0, 4).map(t => ({ ...t })), rounds: 8, autoRounds: true, timer: 1, cards: true, sniper: true,
-  map: 'dew', evs: defEvs(), missions: { on: true, bonus: 4 }, mode: 'peace', dist: 'even', forts: { on: true, kind: 'edge', max: 2, rebuild: 1, cap: true }, nameCategory: 'neighborhoods', nameRound: 0, nameOverrides: {}, cats: CATS.map(c => c.key), ncats: NCATS.map(c => c.key) });
+  map: 'dusk', evs: defEvs(), missions: { on: true, bonus: 4 }, mode: 'peace', dist: 'even', forts: { on: true, kind: 'edge', max: 2, rebuild: 1, cap: true }, nameCategory: 'neighborhoods', nameRound: 0, nameOverrides: {}, cats: CATS.map(c => c.key), ncats: NCATS.map(c => c.key) });
 let S = Object.assign(defSetup(), store.get(K_SETUP, {}));
 const hasQ = k => QS.some(q => q.cat === k), hasN = k => NQS.some(q => q.cat === k);
 function fixSetupCats() {
@@ -2013,7 +2069,7 @@ function fixSetupCats() {
 fixSetupCats();
 S.timer = S.timer ? 1 : 0;
 S.forts = Object.assign(defSetup().forts, S.forts);
-if (!MAPS[S.map]) S.map = 'dew';
+if (!MAPS[S.map]) S.map = 'dusk';
 S.nameCategory = NAME_BANKS[S.nameCategory] ? S.nameCategory : 'neighborhoods';
 S.nameRound = Math.max(0, Math.floor(Number(S.nameRound) || 0));
 S.nameOverrides = S.nameOverrides || {};
@@ -2084,6 +2140,7 @@ const EMB = [['🦅', 'falcon', 'الصقر'], ['🐎', 'horse', 'الخيل'], 
 const EMB_STYLES = [['auto', 'حسب المرحلة', ''], ['kids', 'أبطال', 'ابتدائي'], ['teen', 'شارات', 'متوسط وثانوي'], ['adult', 'دروع', 'جامعي وكبار']];
 for (const [e] of EMB) if (!EMOJIS.includes(e)) EMOJIS.push(e);
 if (!EMB_STYLES.some(x => x[0] === S.emb)) S.emb = 'auto';
+if (S.nameRand === undefined) S.nameRand = true;
 function embTier() { return S.emb && S.emb !== 'auto' ? S.emb : ({ 'ابتدائي': 'kids', 'متوسط': 'teen', 'ثانوي': 'teen' })[S.stage] || 'adult'; }
 function embApply() { if (document.body) document.body.dataset.emb = embTier(); }
 const embHTML = e => `<span class="emo sk-temo" data-e="${e}">${e}</span>`;
@@ -2109,6 +2166,7 @@ const k8 = u => u.length + ':' + u.slice(-24);
 // خريطة عشوائية: تنختار عند بداية كل معركة (وما تتكرر ورا بعض)
 const _wzNewGame = newGame;
 newGame = function () {
+  if (S.nameRand) { const ks = Object.keys(NAME_SETS), c = ks.filter(k => k !== S.lastNames); S.nameCategory = pickOne(c.length ? c : ks); S.lastNames = S.nameCategory; }
   if (S.mapRand && !SEA.active) { const ks = Object.keys(MAPS), c = ks.filter(k => k !== S.lastMap); S.map = pickOne(c.length ? c : ks); }
   S.lastMap = S.map; saveSetup(); embApply();
   return _wzNewGame.apply(this, arguments);
@@ -2127,7 +2185,7 @@ function renderSetup(keep = true) {
   const pool = QS.filter(q => S.cats.includes(q.cat) && qUse(q, S.stage)).length;
   const szName = S.size ? SIZE_UI.find(x => x[0] === S.size)[1] : 'مخصص', lvName = (LVL_UI.find(x => x[0] === S.lvl) || LVL_UI[1])[1];
   const mapName = S.mapRand ? 'خريطة عشوائية' : MAPS[S.map].label, fe = wzFeats();
-  const sums = [`${S.mode === 'war' ? 'المعركة' : 'السلام'} · ${mName} · ${szName}`, `${mapName} · ${lvName} · ${S.stage}`, fe.length ? fe.join(' · ') : 'بدون إضافات', `${n} فرق`];
+  const sums = [`${S.mode === 'war' ? 'المعركة' : 'السلام'} · ${mName} · ${szName}`, `${mapName} · ${lvName} · ${S.stage}`, fe.length ? fe.join(' · ') : 'بدون إضافات', `${n} فرق${SEA.active ? ' · موسم' : ''}`];
   const stepper = `<nav class="wz-steps" aria-label="خطوات الإعداد">${WZ_STEPS.map(([t], i) => `<button class="wzs${i === WZ ? ' on' : ''}${i < WZ && WZ < 4 ? ' done' : ''}" data-wz="${i}" aria-current="${i === WZ ? 'step' : 'false'}"><i>${WZ_NUM[i]}</i><span><b>${t}</b><small>${esc(sums[i])}</small></span></button>`).join('')}</nav>`;
 
   // ١) المعركة: أهم القرارات (تغيّر اللعبة كلها)
@@ -2149,12 +2207,15 @@ function renderSetup(keep = true) {
       <div class="rnd-own"><span>أو حدد الجولات بنفسك</span><span class="cnt"><button class="ib" data-act="rnd" data-d="-1" aria-label="جولة أقل">−</button><b>${S.rounds}</b><button class="ib" data-act="rnd" data-d="1" aria-label="جولة أكثر">+</button></span><span class="muted">≈ ${estMin()} دقيقة</span></div>
     </section>`;
 
-  // ٢) الساحة: الخريطة والأسئلة
   const mapCard = (k, m) => { const p = String(m.sub || '').split(' · '); return `<button class="mapc${!S.mapRand && S.map === k ? ' on' : ''}" data-act="map" data-v="${k}" aria-pressed="${!S.mapRand && S.map === k}"><span class="mv">${mapPreview(m)}</span><b>${m.label}</b><span class="st">${esc(p.slice(0, 2).join(' · '))}</span><small>${esc(p.slice(2).join(' · '))}</small></button>`; };
+  // ٢) الساحة: الخريطة وأسماء المناطق والأسئلة
+  const nameBtns = `<button class="${S.nameRand ? 'on' : ''}" data-wzx="namernd"><i class="emo">🎲</i> عشوائي</button>${Object.entries(NAME_SETS).map(([k, v]) => `<button class="${!S.nameRand && SN().set === k ? 'on' : ''}" data-act="nameset" data-v="${k}" title="${esc(CUR_MAP.preview.map(id => setName(k, IDX[id], S.nameRound)).join('، '))}"><i class="emo">${v.icon}</i> ${v.label}</button>`).join('')}`;
   const st2 = () => `
     <section class="wz-sec t1"><header class="wz-h">${wzImp(3, 'يغيّر طريقة اللعب')}<h3>الخريطة</h3><p>الجزر المتباعدة تخلّي الطرق البحرية حاسمة، والكتل البرية تكثّر المعارك على الحدود.</p></header>
       <div class="maps6">${Object.entries(MAPS).map(([k, m]) => mapCard(k, m)).join('')}
         <button class="mapc rnd${S.mapRand ? ' on' : ''}" data-wzx="maprnd" aria-pressed="${!!S.mapRand}"><span class="mv"><i class="emo">🎲</i></span><b>عشوائي</b><span class="st">مفاجأة كل معركة</span><small>تنختار خريطة مختلفة عند البداية</small></button></div>
+      <div class="wz-sub names-row"><span class="ql">أسماء المناطق</span><div class="seg mini">${nameBtns}</div>
+        ${S.nameRand ? '<span class="muted">فئة أسماء مختلفة كل معركة</span>' : `<button class="btn glass sm" data-act="rerollnames">↻ أسماء جديدة</button><button class="btn glass sm" data-act="names">✏️ تعديل يدوي</button>`}</div>
       ${SEA.active ? `<p class="s-note">🏆 الموسم «${esc(curSeason().name)}» شغّال، وخريطة كل لعبة تمشي على جدول الموسم.</p>` : ''}
     </section>
     <section class="wz-sec t2"><header class="wz-h">${wzImp(2, 'يحدد الصعوبة')}<h3>الأسئلة</h3><span class="pool">${pool} سؤال ثقافي متاح</span></header>
@@ -2162,67 +2223,75 @@ function renderSetup(keep = true) {
       <div class="wz-sub"><span class="ql">المرحلة</span><div class="seg stg">${STAGES.map(s => `<button data-act="stage" data-v="${s}" class="${S.stage === s ? 'on' : ''}">${s}</button>`).join('')}</div></div>
     </section>`;
 
-  // ٣) القوانين: مرتبة حسب تأثيرها على اللعبة
+  // ٣) القوانين: عمودين جنب بعض حسب التأثير + الفئات تحت
   const st3 = () => `
-    <section class="wz-sec t1"><header class="wz-h">${wzImp(3, 'تقلب موازين اللعبة')}<h3>قوانين الحرب</h3><p>هذي الإضافات تغيّر الاستراتيجية نفسها. النمط اختارها لك، وأي تغيير يحوّله «مخصص».</p></header>
-      <div class="rgrid">
-        <div class="rc">${wzTgl(S.forts.on, 'data-act="fon"', '🏰', 'الحصون', 'الأرض المحصّنة صعبة الأخذ. إذا قفلتها تصير كل معركة حاسمة')}
-          ${S.forts.on ? `<div class="seg mini2"><button class="${S.forts.kind === 'edge' ? 'on' : ''}" data-act="fkind" data-v="edge"><b>⚡ أفضلية للمدافع</b><small>المهاجم لازم يكون أقرب بفارق واضح</small></button><button class="${S.forts.kind === 'shield' ? 'on' : ''}" data-act="fkind" data-v="shield"><b>🛡️ درع يصد ضربة</b><small>أول هزيمة تهدم الحصن بس</small></button></div>` : ''}</div>
-        <div class="rc">${wzTgl(S.cards, 'data-act="opt" data-k="cards"', '🃏', 'ورق النفوذ', 'إنزال جوي، حصن فوري، هدنة، إعادة المعركة، المنجنيق')}</div>
-        <div class="rc">${wzTgl(S.evs.on, 'data-act="evon"', '🎴', 'أحداث الجولات', 'عاصفة بحرية، غنائم، نفير عام، زلزال… حدث يغيّر القواعد')}
-          ${S.evs.on ? `<div class="mini-row"><span class="ql">الفرصة</span><div class="seg mini">${[100, 75, 50, 25].map(v => `<button class="${S.evs.chance === v ? 'on' : ''}" data-act="evch" data-v="${v}">${v}٪</button>`).join('')}</div></div>` : ''}</div>
-        <div class="rc">${wzTgl(S.missions.on, 'data-act="mson"', '🔒', 'المهام السرية', `مهمة مخفية لكل فريق من ${Object.keys(MISSIONS).length} نوع، وتنكشف بالنهاية`)}
-          ${S.missions.on ? `<div class="mini-row"><span class="ql">المكافأة</span><div class="seg mini">${[3, 4, 5, 6].map(v => `<button class="${S.missions.bonus === v ? 'on' : ''}" data-act="msb" data-v="${v}">+${v}</button>`).join('')}</div></div>` : ''}</div>
+    <div class="rules-cols">
+    <section class="wz-sec t1"><header class="wz-h">${wzImp(3, 'تقلب موازين اللعبة')}<h3>قوانين الحرب</h3><p>النمط اختارها لك، وأي تغيير يحوّله «مخصص».</p></header>
+      <div class="rlist">
+        ${wzTgl(S.forts.on, 'data-act="fon"', '🏰', 'الحصون', 'الأرض المحصّنة صعبة الأخذ. بدونها كل معركة حاسمة')}
+        ${wzTgl(S.cards, 'data-act="opt" data-k="cards"', '🃏', 'ورق النفوذ', 'إنزال جوي، حصن فوري، هدنة، إعادة المعركة، المنجنيق')}
+        ${wzTgl(S.evs.on, 'data-act="evon"', '🎴', 'أحداث الجولات', 'عاصفة، غنائم، نفير عام، زلزال… حدث يغيّر القواعد')}
+        ${wzTgl(S.missions.on, 'data-act="mson"', '🔒', 'المهام السرية', `مهمة مخفية لكل فريق من ${Object.keys(MISSIONS).length} نوع، وتنكشف بالنهاية`)}
       </div>
     </section>
-    <section class="wz-sec t2"><header class="wz-h">${wzImp(2, 'تغيّر الإيقاع')}<h3>الإيقاع والمساعدات</h3></header>
-      <div class="rgrid">
+    <section class="wz-sec t2"><header class="wz-h">${wzImp(2, 'تغيّر الإيقاع')}<h3>الإيقاع والتفاصيل</h3></header>
+      <div class="rgrid2">
         <div class="rc">${wzTgl(S.sniper, 'data-act="opt" data-k="sniper"', '🎯', 'القنّاص', 'بقية الفرق تكتب رقمها في المعارك، والأقرب ياخذ ورقة')}</div>
-        <div class="rc"><div class="rc-t">⏳ مؤقت التفكير</div><div class="seg mini2"><button class="${S.timer ? '' : 'on'}" data-act="timer" data-s="0"><b>بدون مؤقت</b></button><button class="${S.timer ? 'on' : ''}" data-act="timer" data-s="1"><b>بمؤقت</b><small>${TIME[1]} ث · الصعب ${TIME[2]} ث · المعارك ${TIME.battle} ث</small></button></div></div>
-        <div class="rc"><div class="rc-t">🃏 اعرض الاختيارات <small>لأسئلة الموسوعة</small></div><div class="seg mini2">${[['off', 'مقفل', ''], ['half', 'متاح', 'بدون مكافأة الصعب'], ['card', 'ورقة نفوذ', 'تنسحب مع الورق']].map(([v, l, s]) => `<button class="${S.hint === v ? 'on' : ''}" data-act="hint" data-v="${v}"><b>${l}</b>${s ? `<small>${s}</small>` : ''}</button>`).join('')}</div></div>
-        ${S.forts.on ? `<div class="rc"><div class="rc-t">🏰 تفاصيل الحصون</div>
-          <div class="mini-row"><span class="ql">الحد لكل فريق</span><div class="seg mini">${[1, 2, 3, 0].map(v => `<button class="${S.forts.max === v ? 'on' : ''}" data-act="fmax" data-v="${v}">${v || 'بلا حد'}</button>`).join('')}</div></div>
-          <div class="mini-row"><span class="ql">إعادة البناء</span><div class="seg mini">${[0, 1, 2, 3].map(v => `<button class="${S.forts.rebuild === v ? 'on' : ''}" data-act="freb" data-v="${v}">${['فورًا', 'جولة', 'جولتين', '3 جولات'][v]}</button>`).join('')}</div></div>
-          ${wzTgl(S.forts.cap, 'data-act="fcap"', '👑', 'العواصم تبدأ محصّنة', 'حصن العاصمة يُحسب من الحد')}</div>` : ''}
-        ${S.evs.on ? `<div class="rc"><div class="rc-t">🎴 تفاصيل الأحداث</div><div class="mini-row"><span class="ql">تبدأ من</span><div class="seg mini">${[1, 2, 3].map(v => `<button class="${S.evs.start === v ? 'on' : ''}" data-act="evst" data-v="${v}">الجولة ${v}</button>`).join('')}</div></div>
-          <div class="mini-row"><span class="muted">${evList(S.evs).filter(e => evCfg(S.evs, e.k).on).length} حدث مفعّل من ${evList(S.evs).length}</span><button class="btn glass sm" data-act="evedit">✏️ تخصيص</button></div></div>` : ''}
+        <div class="rc"><div class="rc-t">⏳ مؤقت التفكير</div><div class="seg mini2"><button class="${S.timer ? '' : 'on'}" data-act="timer" data-s="0"><b>بدون</b></button><button class="${S.timer ? 'on' : ''}" data-act="timer" data-s="1"><b>بمؤقت</b><small>${TIME[1]} · ${TIME[2]} · المعارك ${TIME.battle} ث</small></button></div></div>
+        <div class="rc"><div class="rc-t">🃏 اعرض الاختيارات <small>أسئلة الموسوعة</small></div><div class="seg mini2">${[['off', 'مقفل', ''], ['half', 'متاح', 'بدون مكافأة'], ['card', 'ورقة', 'مع الورق']].map(([v, l, s]) => `<button class="${S.hint === v ? 'on' : ''}" data-act="hint" data-v="${v}"><b>${l}</b>${s ? `<small>${s}</small>` : ''}</button>`).join('')}</div></div>
+        <div class="rc${S.forts.on ? '' : ' off'}"><div class="rc-t">🏰 الحصون</div>${S.forts.on ? `
+          <div class="seg mini"><button class="${S.forts.kind === 'edge' ? 'on' : ''}" data-act="fkind" data-v="edge" title="المهاجم لازم يكون أقرب بفارق واضح">⚡ أفضلية للمدافع</button><button class="${S.forts.kind === 'shield' ? 'on' : ''}" data-act="fkind" data-v="shield" title="أول هزيمة تهدم الحصن بس">🛡️ درع يصد ضربة</button></div>
+          <div class="mini-row"><span class="ql">الحد</span><div class="seg mini">${[1, 2, 3, 0].map(v => `<button class="${S.forts.max === v ? 'on' : ''}" data-act="fmax" data-v="${v}">${v || 'بلا حد'}</button>`).join('')}</div><span class="ql">البناء</span><div class="seg mini">${[0, 1, 2, 3].map(v => `<button class="${S.forts.rebuild === v ? 'on' : ''}" data-act="freb" data-v="${v}">${['فورًا', 'جولة', 'جولتين', '3'][v]}</button>`).join('')}</div></div>
+          <div class="mini-row"><button class="chipb${S.forts.cap ? ' on' : ''}" style="--cc:var(--gold)" data-act="fcap">👑 العواصم تبدأ محصّنة</button></div>` : '<span class="muted">مقفلة</span>'}</div>
+        <div class="rc${S.evs.on ? '' : ' off'}"><div class="rc-t">🎴 الأحداث</div>${S.evs.on ? `
+          <div class="mini-row"><span class="ql">الفرصة</span><div class="seg mini">${[100, 75, 50, 25].map(v => `<button class="${S.evs.chance === v ? 'on' : ''}" data-act="evch" data-v="${v}">${v}٪</button>`).join('')}</div></div>
+          <div class="mini-row"><span class="ql">تبدأ</span><div class="seg mini">${[1, 2, 3].map(v => `<button class="${S.evs.start === v ? 'on' : ''}" data-act="evst" data-v="${v}">ج${v}</button>`).join('')}</div><button class="btn glass sm" data-act="evedit">✏️ ${evList(S.evs).filter(e => evCfg(S.evs, e.k).on).length}/${evList(S.evs).length}</button></div>` : '<span class="muted">مقفلة</span>'}</div>
+        <div class="rc${S.missions.on ? '' : ' off'}"><div class="rc-t">🔒 المهام</div>${S.missions.on ? `
+          <div class="mini-row"><span class="ql">المكافأة</span><div class="seg mini">${[3, 4, 5, 6].map(v => `<button class="${S.missions.bonus === v ? 'on' : ''}" data-act="msb" data-v="${v}">+${v}</button>`).join('')}</div></div>` : '<span class="muted">مقفلة</span>'}</div>
       </div>
     </section>
-    <section class="wz-sec t3"><header class="wz-h">${wzImp(1, 'لمسات وتفاصيل')}<h3>الأسئلة والأسماء والموسم</h3></header>
-      <div class="rc wide"><div class="rc-t">📚 فئات الأسئلة الثقافية <small>للتوسّع والتحصين</small><span class="quick"><button data-act="cats" data-v="all">الكل</button></span></div>
-        <div class="chips">${CATS.map(c => `<button class="chipb${S.cats.includes(c.key) ? ' on' : ''}" style="--cc:${c.color}" data-act="cat" data-k="${c.key}" ${qc(c.key) ? '' : 'disabled title="ما فيها أسئلة"'}><i class="emo">${c.icon}</i> ${c.name} <small>${qc(c.key)}</small></button>`).join('')}</div>
-        <div class="rc-t" style="margin-top:.7rem">🔢 فئات معارك الأرقام <small>المهاجم يختار منها</small><span class="quick"><button data-act="ncats" data-v="all">الكل</button></span></div>
-        <div class="chips">${NCATS.map(c => `<button class="chipb${S.ncats.includes(c.key) ? ' on' : ''}" style="--cc:${c.color}" data-act="ncat" data-k="${c.key}" ${nc(c.key) ? '' : 'disabled title="ما فيها أسئلة"'}><i class="emo">${c.icon}</i> ${c.name} <small>${nc(c.key)}</small></button>`).join('')}</div></div>
-      <div class="rgrid" style="margin-top:.7rem">
-        <div class="rc"><div class="rc-t">🏷️ أسماء المناطق</div><div class="seg mini">${Object.entries(NAME_SETS).map(([k, v]) => `<button class="${SN().set === k ? 'on' : ''}" data-act="nameset" data-v="${k}" title="${esc(CUR_MAP.preview.map(id => setName(k, IDX[id], S.nameRound)).join('، '))}"><i class="emo">${v.icon}</i> ${v.label}</button>`).join('')}</div>
-          <div class="mini-row"><button class="btn glass sm" data-act="rerollnames">↻ أسماء جديدة</button><button class="btn glass sm" data-act="names">✏️ تعديل يدوي</button></div></div>
-        <div class="rc">${wzTgl(S.cupSeason, 'data-act="cup"', '🏆', 'سجّل في موسم البطولة', 'النتيجة تنحسب في جدول الموسم، وإذا ما فيه موسم ينفتح واحد')}</div>
-      </div>
+    </div>
+    <section class="wz-sec t3 cats-sec"><header class="wz-h">${wzImp(1, 'لمسات وتفاصيل')}<h3>فئات الأسئلة</h3><span class="quick"><button data-act="cats" data-v="all">كل الثقافية</button><button data-act="ncats" data-v="all">كل الأرقام</button></span></header>
+      <div class="chips">${CATS.map(c => `<button class="chipb${S.cats.includes(c.key) ? ' on' : ''}" style="--cc:${c.color}" data-act="cat" data-k="${c.key}" ${qc(c.key) ? '' : 'disabled title="ما فيها أسئلة"'}><i class="emo">${c.icon}</i> ${c.name} <small>${qc(c.key)}</small></button>`).join('')}<span class="chip-sep">معارك الأرقام:</span>${NCATS.map(c => `<button class="chipb${S.ncats.includes(c.key) ? ' on' : ''}" style="--cc:${c.color}" data-act="ncat" data-k="${c.key}" ${nc(c.key) ? '' : 'disabled title="ما فيها أسئلة"'}><i class="emo">${c.icon}</i> ${c.name} <small>${nc(c.key)}</small></button>`).join('')}</div>
     </section>`;
 
-  // ٤) الجيوش: الفرق وأسماؤها وشعاراتها وألوانها
-  const st4 = () => `
-    <section class="wz-sec t2 teams-sec"><header class="wz-h">${wzImp(2, 'من يتنافس')}<h3>الجيوش</h3><span class="cnt"><button class="ib" data-act="tn" data-d="-1" ${n <= 2 ? 'disabled' : ''} aria-label="فريق أقل">−</button><b>${n}</b><button class="ib" data-act="tn" data-d="1" ${n >= 6 ? 'disabled' : ''} aria-label="فريق أكثر">+</button></span><span class="muted">من فريقين إلى 6</span></header>
-      <div class="wz-sub emb-style"><span class="ql">شكل الشعارات</span><div class="seg">${EMB_STYLES.map(([v, l, s]) => `<button class="${(S.emb || 'auto') === v ? 'on' : ''}" data-wzx="emb" data-v="${v}"><b>${l}</b><small>${v === 'auto' ? `الآن: ${EMB_STYLES.find(x => x[0] === embTier())[1]}` : s}</small></button>`).join('')}</div></div>
+  // ٤) الجيوش + موسم البطولة (بارز ومشروح)
+  const se = curSeason();
+  const seasonSec = `
+    <section class="wz-sec t1 season-sec"><header class="wz-h">${wzImp(3, 'يغيّر معنى الفوز')}<h3>🏆 موسم البطولة</h3></header>
+      <div class="season-grid">
+        <ol class="season-how">
+          <li><b>الموسم دوري</b> بين نفس الفرق على عدة ألعاب، مو لعبة وحدة.</li>
+          <li>كل لعبة تعطي نقاط حسب الترتيب: <b>الأول ${SEASON_PTS[0]}</b>، الثاني ${SEASON_PTS[1]}، الثالث ${SEASON_PTS[2]}، الرابع ${SEASON_PTS[3]}…</li>
+          <li>الفرق تنعرف <b>بأسمائها</b>، فخلّوا نفس الأسماء كل مرة.</li>
+          <li>كل لعبة على خريطة مختلفة حسب جدول الموسم، و<b>بطل الموسم</b> صاحب أعلى نقاط.</li>
+        </ol>
+        <div class="season-pick">
+          <div class="seg list">
+            <button class="${SEA.active ? '' : 'on'}" data-act="sesel" data-v=""><i class="emo">🎲</i><b>لعبة منفردة</b><small>ما تنحسب في أي موسم</small></button>
+            ${SEA.list.map(s2 => { const top = seasonTable(s2)[0]; return `<button class="${SEA.active === s2.id ? 'on' : ''}" data-act="sesel" data-v="${s2.id}"><i class="emo">🏆</i><b>${esc(s2.name)}</b><small>${s2.games.length} لعبة${top ? ` · المتصدر ${esc(top.name)} (${top.pts})` : ''}${seasonNext(s2) ? ` · الجاية: ${MAPS[seasonNext(s2)].label}` : ''}</small></button>`; }).join('')}
+          </div>
+          <div class="mini-row"><button class="btn gold sm" data-act="senew">＋ موسم جديد</button>${se ? '<button class="btn glass sm" data-act="setable">📊 جدول الموسم</button>' : `<button class="chipb${S.cupSeason ? ' on' : ''}" style="--cc:var(--gold)" data-act="cup" title="إذا بدأت بدون موسم ينفتح موسم جديد تلقائيًا">افتح موسم تلقائيًا</button>`}</div>
+        </div>
+      </div>
+    </section>`;
+  const st4 = () => `${seasonSec}
+    <section class="wz-sec t2 teams-sec"><header class="wz-h">${wzImp(2, 'من يتنافس')}<h3>الجيوش</h3><span class="cnt"><button class="ib" data-act="tn" data-d="-1" ${n <= 2 ? 'disabled' : ''} aria-label="فريق أقل">−</button><b>${n}</b><button class="ib" data-act="tn" data-d="1" ${n >= 6 ? 'disabled' : ''} aria-label="فريق أكثر">+</button></span>
+        <div class="seg mini emb-mini"><span class="ql">الشعارات</span>${EMB_STYLES.map(([v, l, s]) => `<button class="${(S.emb || 'auto') === v ? 'on' : ''}" data-wzx="emb" data-v="${v}" title="${v === 'auto' ? 'الآن: ' + EMB_STYLES.find(x => x[0] === embTier())[1] : s}">${l}</button>`).join('')}</div></header>
       <div class="tgrid">${S.teams.map((t, i) => `<div class="trow wz-t" style="--tc:${COLORS[t.color]}"><button class="t-emo" data-act="emo" data-i="${i}" title="غيّر الشعار">${embHTML(t.emblem)}</button>
         <div class="t-mid"><input class="t-name" data-i="${i}" value="${esc(t.name)}" maxlength="18" placeholder="اسم الفريق"><div class="t-cols">${COLORS.map((c, k) => `<button class="sw${t.color === k ? ' on' : ''}" style="--sw:${c}" data-act="col" data-i="${i}" data-c="${k}" aria-label="لون"></button>`).join('')}</div></div>
         ${n > 2 ? `<button class="t-rm" data-act="rmteam" data-i="${i}" title="احذف الفريق" aria-label="احذف الفريق">✕</button>` : ''}</div>`).join('')}</div>
-      <div class="emb-prev"><span class="ql">الشعارات المتاحة <small>${EMB.length} شعار · اضغط شعار أي فريق لتغييره</small></span><div>${EMB.map(([e, , nm]) => `<span title="${nm}">${embHTML(e)}</span>`).join('')}</div></div>
     </section>`;
 
   // للمشرف
   const st5 = () => `
-    <section class="wz-sec t3"><header class="wz-h"><h3>🛠️ للمشرف</h3><p>بنك الأسئلة والأحداث والمهام والموسم. ما تحتاجها في كل مرة.</p></header>
+    <section class="wz-sec t3"><header class="wz-h"><h3>🛠️ للمشرف</h3><p>بنك الأسئلة والأحداث والمهام. ما تحتاجها في كل مرة.</p></header>
       <div class="rgrid">
         <div class="rc"><div class="rc-t">📝 بنك الأسئلة <small>${QS.length} ثقافي · ${NQS.length} أرقام</small></div>
           <div class="mini-row"><button class="btn glass sm" data-act="editor-setup">✏️ تعديل الأسئلة</button><button class="btn gold sm" data-act="ed-enc">📚 من الموسوعة</button><button class="btn glass sm" data-act="ed-export">⬇ نسخة احتياطية</button><button class="btn glass sm" data-act="ed-import">⬆ استرجاع</button></div></div>
         <div class="rc"><div class="rc-t">🎴 الأحداث والمهام</div><div class="mini-row"><button class="btn glass sm" data-act="evedit">✏️ تخصيص الأحداث</button></div>
           ${wzTgl(S.missions.print, 'data-act="msprint"', '🖨️', 'اطبع المهام السرية بدل عرضها', 'تنطبع ورقة لكل فريق أول ما تبدأ الحرب')}</div>
-        <div class="rc wide"><div class="rc-t">🏆 الموسم</div>
-          <p class="s-note" style="margin-top:0">سلسلة ألعاب تتجمع فيها النقاط حسب الترتيب (الأول ${SEASON_PTS[0]}، الثاني ${SEASON_PTS[1]}، الثالث ${SEASON_PTS[2]}…).</p>
-          <div class="seg list"><button class="${SEA.active ? '' : 'on'}" data-act="sesel" data-v=""><i class="emo">🎲</i><b>لعبة منفردة</b><small>ما تنحسب في أي موسم</small></button>
-            ${SEA.list.map(se => { const top = seasonTable(se)[0]; return `<button class="${SEA.active === se.id ? 'on' : ''}" data-act="sesel" data-v="${se.id}"><i class="emo">🏆</i><b>${esc(se.name)}</b><small>${se.games.length} لعبة${top ? ` · المتصدر ${esc(top.name)} (${top.pts})` : ''}${seasonNext(se) ? ` · الجاية: ${MAPS[seasonNext(se)].label}` : ''}</small></button>`; }).join('')}</div>
-          <div class="mini-row"><button class="btn glass sm" data-act="senew">＋ موسم جديد</button>${SEA.active ? '<button class="btn glass sm" data-act="setable">📊 جدول الموسم</button>' : ''}</div></div>
+        <div class="rc"><div class="rc-t">🏷️ أسماء المناطق</div><div class="mini-row"><button class="btn glass sm" data-act="names">✏️ تعديل أسماء هذي الخريطة</button></div></div>
       </div>
     </section>`;
 
@@ -2232,7 +2301,7 @@ function renderSetup(keep = true) {
   <div class="s-body wz" data-wz="${WZ}"><div class="wz-in">${[st1, st2, st3, st4, st5][WZ]()}</div></div>
   <div class="s-foot uni-foot wz-foot"><div class="s-sum">${[curSeason() ? '🏆 ' + esc(curSeason().name) : '', S.mode === 'war' ? 'المعركة' : 'السلام', mName, `${n} فرق`, mapName, `${S.rounds} ${S.rounds > 10 ? 'جولة' : 'جولات'}`, `≈ ${estMin()} دقيقة`].filter(Boolean).join(' · ')}</div>
     ${WZ > 0 ? `<button class="btn glass" data-wz="${WZ === 4 ? 0 : 'prev'}">→ ${WZ === 4 ? 'رجوع للإعداد' : 'السابق'}</button>` : ''}${WZ < 3 ? `<button class="btn glass wz-next" data-wz="next">التالي: ${WZ_STEPS[WZ + 1][0]} ←</button>` : ''}
-    <button class="btn gold big wz-go${WZ === 3 ? ' last' : ''}" data-act="start">ابدأ المعركة <kbd>Enter</kbd></button></div>`;
+    <button class="btn gold big wz-go${WZ === 3 ? ' last' : ''}" data-act="start" ${WZ === 3 ? '' : 'disabled title="كمّل خطوات الإعداد للآخر عشان تبدأ"'}>ابدأ المعركة <kbd>Enter</kbd></button></div>`;
   applyTools();
   const nb2 = el.querySelector('.s-body'); if (nb2) nb2.scrollTop = keepY;
 }
@@ -2240,10 +2309,27 @@ function renderSetup(keep = true) {
 document.addEventListener('click', e => {
   const b = e.target.closest('#setup [data-wz], #setup [data-wzx]'); if (!b || b.disabled) return;
   if (b.dataset.wzx === 'maprnd') { S.mapRand = true; }
+  else if (b.dataset.wzx === 'namernd') { S.nameRand = true; }
   else if (b.dataset.wzx === 'emb') { S.emb = b.dataset.v; }
   else { const v = b.dataset.wz; WZ = v === 'next' ? Math.min(3, WZ + 1) : v === 'prev' ? Math.max(0, WZ - 1) : +v; }
   SFX.click(); saveSetup(); renderSetup(); const sb = $('#setup .s-body'); if (sb && b.dataset.wz != null) sb.scrollTop = 0;
 });
+// اختيار الشعار: نافذة صغيرة جنب الفريق، والإعداد يبقى ظاهر
+function embPop(i, btn) {
+  document.querySelector('.emb-pop')?.remove();
+  const p = document.createElement('div'); p.className = 'emb-pop'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'اختر شعار الفريق');
+  p.innerHTML = `<div class="ep-h"><b>شعار «${esc(S.teams[i].name)}»</b><button class="ep-x" aria-label="إغلاق">✕</button></div><div class="ep-g">${EMB.map(([e, , nm]) => `<button data-pe="${e}" class="${S.teams[i].emblem === e ? 'on' : ''}" title="${nm}">${embHTML(e)}<small>${nm}</small></button>`).join('')}</div>`;
+  document.body.append(p);
+  const place = () => { const b2 = document.querySelector(`#setup .t-emo[data-i="${i}"]`) || btn; if (!p.isConnected || !b2) return; const r = b2.getBoundingClientRect(), pw = p.offsetWidth, ph = p.offsetHeight;
+    let x = r.left + r.width / 2 - pw / 2, y = r.bottom + 8; if (y + ph > innerHeight - 8) y = Math.max(8, r.top - ph - 8);
+    p.style.left = Math.max(8, Math.min(innerWidth - pw - 8, x)) + 'px'; p.style.top = y + 'px'; };
+  p.style.visibility = 'hidden'; requestAnimationFrame(() => { place(); p.style.visibility = ''; });
+  const close = () => { p.remove(); document.removeEventListener('pointerdown', out, true); document.removeEventListener('keydown', key, true); };
+  const out = e => { if (!p.contains(e.target)) close(); }, key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
+  setTimeout(() => { document.addEventListener('pointerdown', out, true); document.addEventListener('keydown', key, true); });
+  p.querySelector('.ep-x').onclick = close;
+  p.querySelectorAll('[data-pe]').forEach(x => x.onclick = () => { S.teams[i].emblem = x.dataset.pe; close(); SFX.click(); saveSetup(); renderSetup(); });
+}
 /* /setup-wizard v1 js */
 function setupAct(act, b) {
   const i = +b.dataset.i;
@@ -2261,6 +2347,7 @@ function setupAct(act, b) {
       S.teams[i].color = c; break;
     }
     case 'emo': {
+      return embPop(i, b);
       const d = dialog(`<div class="sh-top"><h2>اختر شعار الفريق</h2></div><div class="emb-grid">${EMB.map(([e, , nm]) => `<button data-e="${e}" class="${S.teams[i].emblem === e ? 'on' : ''}">${embHTML(e)}<small>${nm}</small></button>`).join('')}</div>`);
       d.querySelectorAll('button[data-e]').forEach(x => x.onclick = () => { S.teams[i].emblem = x.dataset.e; closeDialog(); saveSetup(); renderSetup(); });
       return;
@@ -2285,7 +2372,7 @@ function setupAct(act, b) {
     case 'fmax': S.forts.max = +b.dataset.v; break;
     case 'freb': S.forts.rebuild = +b.dataset.v; break;
     case 'fcap': S.forts.cap = !S.forts.cap; break;
-    case 'nameset': S.nameCategory = b.dataset.v; break;
+    case 'nameset': S.nameCategory = b.dataset.v; S.nameRand = false; break;
     case 'rerollnames': S.nameRound++; break;
     case 'evon': S.evs.on = !S.evs.on; break;
     case 'mson': S.missions.on = !S.missions.on; break;
