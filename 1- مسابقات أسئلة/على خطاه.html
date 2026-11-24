@@ -352,11 +352,11 @@ details.more[open] summary .chev{transform:rotate(180deg)}
 .opt .k{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:1.05rem;color:var(--goldInk);background:radial-gradient(circle at 35% 30%,#FFE9A8,var(--gold2));box-shadow:0 2px 0 var(--gold3)}
 .opt .ot{flex:1;min-width:0}
 .opt .ot .qr{--qrc:var(--gold);font-size:1.15em}
-.opt.right{background:linear-gradient(180deg,#2F9E5E,#21794A);border-color:#7BE0A3;color:#fff;transform:scale(1.02)}
-.opt.wrong{background:linear-gradient(180deg,#8E2F2B,#6B201D);border-color:#E2574A;color:#FFE3DE}
-.opt.dim{opacity:.42}
-.opt.gone{opacity:.14;pointer-events:none;text-decoration:line-through}
-.opt.shk{animation:shk .38s ease}
+.opts .opt.right{background:linear-gradient(180deg,#2F9E5E,#21794A);border-color:#7BE0A3;color:#fff;transform:scale(1.02)}
+.opts .opt.wrong{background:linear-gradient(180deg,#8E2F2B,#6B201D);border-color:#E2574A;color:#FFE3DE}
+.opts .opt.dim{opacity:.42}
+.opts .opt.gone{opacity:.14;pointer-events:none;text-decoration:line-through}
+.opts .opt.shk{animation:shk .38s ease}
 @keyframes shk{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 .opts.tf{grid-template-columns:1fr 1fr}
 .tfo{justify-content:center;padding:clamp(16px,4vh,30px) 18px !important;font-size:clamp(1.4rem,4vh,2rem) !important}
@@ -366,7 +366,8 @@ details.more[open] summary .chev{transform:rotate(180deg)}
 .tfo .ot{flex:none}
 
 /* وين صار؟ */
-.where{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,300px);gap:14px;align-items:start}
+.where{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,420px);gap:14px;align-items:start}
+.where-side .reveal{padding:12px 14px}.where-side .rv-f .btn{margin-inline-start:0;width:100%}
 .map{width:100%;max-height:calc(100vh - 330px);min-height:300px;height:auto;display:block;justify-self:center;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35))}
 .map .sea{fill:#2A6F8F} [data-theme=paper] .map .sea{fill:#8CC7DD}
 .map .wv{stroke:rgba(255,255,255,.35);stroke-width:2}
@@ -1060,7 +1061,7 @@ function mapSvg(q, c) {
     <g class="rose" transform="translate(600,46)"><circle r="26"/><path d="M0,-22 L6,0 L0,22 L-6,0Z"/><text y="-30">ش</text></g>
     ${pins}</svg>`;
 }
-function optsHtml(q, c) {
+function optsHtml(q, c, rv = "") {
   const st = (oi) => c.done ? (isRight(q, oi) ? "right" : c.wrong.includes(oi) ? "wrong" : "dim") : c.wrong.includes(oi) ? "wrong" : c.removed.includes(oi) ? "gone" : "";
   if (q.t === "tf") return `<div class="opts tf">${[[0, "صح", "check"], [1, "خطأ", "x"]].map(([oi, n, ic], slot) => `<button class="opt tfo ${oi ? "f" : "t"} ${st(oi)}" data-act="answer" data-v="${slot}">
       <span class="k num">${ar(slot + 1)}</span><span class="tfi">${I(ic)}</span><span class="ot">${n}</span></button>`).join("")}</div>`;
@@ -1070,7 +1071,7 @@ function optsHtml(q, c) {
       <span class="k num">${ar(slot + 1)}</span><span class="ot">${q.o[oi]}</span></button>`).join("")}</div>`;
   }
   if (q.t === "where") return `<div class="where">${mapSvg(q, c)}<div class="where-side"><p>${I("map")} اختاروا رقم المكان الصحيح على الخريطة.</p>
-    <div class="wlist">${c.order.map((oi, slot) => `<button class="wbtn ${st(oi)}" data-act="answer" data-v="${slot}"><span class="k num">${ar(slot + 1)}</span>${c.done || c.wrong.includes(oi) ? PL[q.o[oi]].name : "؟"}</button>`).join("")}</div></div></div>`;
+    <div class="wlist">${c.order.map((oi, slot) => `<button class="wbtn ${st(oi)}" data-act="answer" data-v="${slot}"><span class="k num">${ar(slot + 1)}</span>${c.done || c.wrong.includes(oi) ? PL[q.o[oi]].name : "؟"}</button>`).join("")}</div>${rv}</div></div>`;
   if (q.t === "order") {
     const slots = q.items.map((_, k) => {
       const it = c.seq[k];
@@ -1110,8 +1111,7 @@ function renderQ(fx = {}) {
     <div class="q-main t-${q.t}">
       <div class="q-card ${c.golden ? "golden" : ""}"><h2 class="q-text">${q.q}</h2></div>
       ${banner}
-      ${optsHtml(q, c)}
-      ${rv}
+      ${q.t === "where" ? optsHtml(q, c, rv) : optsHtml(q, c) + rv}
     </div>
     ${teamBar()}</section>`;
 }
@@ -1286,6 +1286,7 @@ function finish(ok, who, slot) {
   saveG();
   const from = slot != null ? $$("[data-act=answer]")[slot]?.getBoundingClientRect() : null;
   renderQ({ reveal: true });
+  requestAnimationFrame(() => $(".reveal")?.scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" }));
   if (ok) {
     sfx.right();
     const r = from || $(".q-card").getBoundingClientRect();
