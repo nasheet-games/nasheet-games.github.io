@@ -96,8 +96,9 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 .emb-img { width: 44px; height: 44px; object-fit: contain; flex: none; }
 .tchip { display: inline-flex; align-items: center; gap: 10px; padding: 6px 18px 6px 10px; border-radius: 999px; background: rgba(6, 20, 44, .85); border: 2px solid var(--tc); font: 700 24px var(--font); color: #fff; }
 .tchip .emb-img { width: 40px; height: 40px; }
-#skipbtn { position: absolute; left: 50%; top: 104px; margin-left: -80px; z-index: 45; display: flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .3); background: rgba(4, 14, 30, .72); color: #fff; font: 600 22px var(--font); opacity: 0; pointer-events: none; transition: opacity .3s; }
-#skipbtn.on { opacity: .9; pointer-events: auto; }
+#skipbtn { position: absolute; left: 18px; bottom: 14px; z-index: 45; display: flex; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, .3); background: rgba(4, 14, 30, .72); color: #fff; font: 600 22px var(--font); opacity: 0; pointer-events: none; transition: opacity .3s; }
+#skipbtn.on { opacity: .8; pointer-events: auto; }
+#skipbtn { font-size: 19px; }
 .toast { padding: 12px 28px; border-radius: 14px; background: rgba(6, 20, 44, .95); border: 1px solid rgba(255, 255, 255, .22); font: 600 24px var(--font); box-shadow: 0 10px 30px rgba(0, 0, 0, .4); animation: toastIn .3s ease; transition: opacity .4s, transform .4s; }
 .toast.ok { border-color: #2ACB7A; } .toast.warn { border-color: #FFB21E; }
 .toast.out { opacity: 0; transform: translateY(-10px); }
