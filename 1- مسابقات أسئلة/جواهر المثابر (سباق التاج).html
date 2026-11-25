@@ -47,7 +47,10 @@ kbd { font: 600 15px var(--font); background: rgba(0, 0, 0, .28); border: 1px so
 #tint.st-ghadab { background: linear-gradient(180deg, rgba(30, 8, 62, .86), rgba(52, 18, 96, .38) 55%, rgba(18, 4, 40, .74)); }
 #tint.st-anania { background: linear-gradient(180deg, rgba(64, 40, 6, .84), rgba(110, 72, 14, .4) 55%, rgba(40, 24, 4, .72)); }
 #tint.clear { opacity: 0; }
-#view { position: absolute; inset: 0; z-index: 10; transition: opacity .5s; }
+#view { position: absolute; inset: 0; z-index: 10; transition: opacity .5s; pointer-events: none; }
+#view > * { pointer-events: none; }
+#view > * > * { pointer-events: auto; }
+#view .op-dark, #view .op-veil, #view .op-gems, #view .op-crown, #view .op-tag, #view .op-meta, #view .gn-points { pointer-events: none; }
 #view.vfade { opacity: 0; }
 #fx { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
 #cine { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
@@ -124,6 +127,8 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 .hud-storms img { width: 46px; height: 46px; object-fit: contain; }
 .hud-storms img.done { opacity: .28; filter: grayscale(1); }
 .hud-tools { display: flex; gap: 10px; }
+.hud-tools .icbtn span { font-size: 18px; }
+.hud-tools .icbtn.end { border-color: rgba(255, 120, 120, .55); color: #FFC2C2; }
 
 /* ── التاج ── */
 .crown { position: relative; width: 100%; aspect-ratio: 1000 / 684; }
@@ -373,7 +378,7 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 .announce .draw .emb-img { width: 70px; height: 70px; }
 
 /* ── عالم الجوهرة والصناديق ── */
-.world { position: absolute; inset: 0; pointer-events: none; }
+.world { position: absolute; inset: 0; }
 .w-title { position: absolute; top: 108px; right: 70px; display: flex; gap: 20px; align-items: center; padding: 14px 36px 14px 28px; border-radius: 24px; background: var(--panel); border: 3px solid var(--gc); box-shadow: 0 0 40px -6px var(--gc); transition: opacity .6s, transform .6s; pointer-events: auto; }
 .w-gem { width: 104px; }
 .w-title small { font: 600 22px var(--font); color: var(--gold); }
@@ -385,15 +390,15 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 .chest { position: absolute; width: 260px; height: 360px; transform: translateX(-50%); background: none; border: 0; padding: 0; transition: transform .55s cubic-bezier(.3, 1.3, .5, 1), opacity .5s; transition-delay: calc(var(--d) * 90ms); }
 #set.pre .chest { opacity: 0; transform: translateX(-50%) translateY(70px); }
 .ch-ped { position: absolute; bottom: 0; left: 50%; width: 220px; transform: translateX(-50%); }
-.ch-img { position: absolute; bottom: 128px; left: 50%; width: 240px; transform: translateX(-50%); transition: transform .3s; }
+.ch-box { position: absolute; bottom: 128px; left: 50%; width: 240px; transform: translateX(-50%); transition: transform .3s; }
+.ch-img { display: block; width: 100%; }
 .ch-glow { position: absolute; bottom: 100px; left: 50%; width: 340px; height: 340px; border-radius: 50%; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(255, 214, 110, .85), transparent); opacity: 0; transition: opacity .4s, transform .6s; }
-.ch-num { position: absolute; bottom: 236px; left: 50%; transform: translateX(-50%); font: 700 40px/1 var(--font); color: #4A2600; text-shadow: 0 1px 0 #FFEAA8; pointer-events: none; transition: opacity .3s; }
-.chest:hover .ch-img { transform: translateX(-50%) translateY(-16px); }
+.ch-num { position: absolute; left: 48%; top: 20%; transform: translate(-50%, -50%); font: 700 34px/1 var(--font); color: #5A2E00; text-shadow: 0 1px 0 rgba(255, 240, 190, .9); pointer-events: none; transition: opacity .3s; }
+.chest:hover .ch-box { transform: translateX(-50%) translateY(-16px); }
 .chest:hover .ch-glow { opacity: .55; }
-.chest:hover .ch-num { transform: translateX(-50%) translateY(-16px); }
 .chest.away { opacity: 0; transform: translateX(-50%) translateY(90px) scale(.9); transition-delay: 0s; }
 .chest.picked { transform: translateX(calc(-50% + 960px - var(--x, 0px))) translateY(-30px) scale(1.45); transition-delay: 0s; }
-.chest.shaking .ch-img { animation: chestShake .11s linear infinite; }
+.chest.shaking .ch-box { animation: chestShake .11s linear infinite; }
 .chest.shaking .ch-glow { opacity: .8; }
 @keyframes chestShake { 0% { transform: translateX(-50%) rotate(-3deg); } 50% { transform: translateX(-50%) rotate(3deg) translateY(-3px); } 100% { transform: translateX(-50%) rotate(-3deg); } }
 .chest.open .ch-glow { opacity: 1; transform: translateX(-50%) scale(1.7); }
@@ -1493,6 +1498,9 @@ function hudHTML() {
     <div class="hud-mid"><span class="hud-round"></span><span class="hud-storms"></span></div>
     <div class="hud-tools">
       <button class="icbtn" data-a="panel" title="لوحة المعلم (P)">${ic('sliders')}<span>لوحة المعلم</span></button>
+      <button class="icbtn" data-a="undo" title="التراجع عن آخر تقييم (Ctrl+Z)">${ic('undo')}<span>تراجع</span></button>
+      <button class="icbtn" data-a="cine" title="طول المشاهد السينمائية">${ic('skip')}<span>${prefs.cine === 'short' ? 'مشاهد مختصرة' : 'مشاهد كاملة'}</span></button>
+      <button class="icbtn end" data-a="end" title="إنهاء المسابقة وعرض النتائج">${ic('trophy')}<span>إنهاء</span></button>
       <button class="icbtn" data-a="snd" title="الصوت (M)">${ic(prefs.sound ? 'vol' : 'mute')}</button>
       <button class="icbtn" data-a="fs" title="ملء الشاشة (F)">${ic('max')}</button>
     </div></div>`;
@@ -1502,6 +1510,9 @@ function hudMount() {
   h.querySelector('[data-a=panel]').onclick = () => togglePanel();
   h.querySelector('[data-a=snd]').onclick = () => toggleSound();
   h.querySelector('[data-a=fs]').onclick = fullscreen;
+  h.querySelector('[data-a=undo]').onclick = () => askUndo();
+  h.querySelector('[data-a=end]').onclick = () => askEndGame();
+  h.querySelector('[data-a=cine]').onclick = (e) => { prefs.cine = prefs.cine === 'short' ? 'full' : 'short'; savePrefs(); Snd.click(); e.currentTarget.querySelector('span').textContent = prefs.cine === 'short' ? 'مشاهد مختصرة' : 'مشاهد كاملة'; toast(prefs.cine === 'short' ? 'المشاهد السينمائية مختصرة' : 'المشاهد السينمائية كاملة'); renderPanel(); };
 }
 function hudUpdate() {
   const h = $('#hud'); if (!h.firstChild || !G) return;
@@ -1600,7 +1611,7 @@ function renderPanel() {
       const a = all.find((x) => x.k === k); if (a && a.fn) { Snd.click(); a.fn(); setTimeout(renderPanel, 50); }
     };
   });
-  p.querySelectorAll('[data-seg]').forEach((s) => s.querySelectorAll('button').forEach((b) => (b.onclick = () => { prefs[s.dataset.seg] = b.dataset.v; savePrefs(); Snd.click(); renderPanel(); })));
+  p.querySelectorAll('[data-seg]').forEach((s) => s.querySelectorAll('button').forEach((b) => (b.onclick = () => { prefs[s.dataset.seg] = b.dataset.v; savePrefs(); Snd.click(); const hb = $('#hud [data-a=cine] span'); if (hb) hb.textContent = prefs.cine === 'short' ? 'مشاهد مختصرة' : 'مشاهد كاملة'; renderPanel(); })));
   p.querySelectorAll('[data-pt]').forEach((b) => (b.onclick = () => teamDetail(+b.dataset.pt)));
 }
 /* تفاصيل رصيد فريق (عند الضغط على تاجه) */
@@ -1999,7 +2010,7 @@ async function worldScene(g, intro) {
   const c = G.cur, t = c.t, Gm = GEMS[g];
   hud(true); camReset(0); setBg('world_' + g); tint(''); fxClear(); ambientFx(WORLD_FX[g], g === 'ukhuwwa' ? '#CFEFFF' : Gm.color); Snd.ambient(WORLD_AMB[g]);
   setScene(CHEST_X.map((x, i) => `<button class="chest" data-n="${i + 1}" style="left:${x}px;top:${CHEST_TOP[i]}px;--d:${i};--x:${x}px" title="الصندوق ${i + 1}">
-      <span class="ch-glow"></span><img class="ch-ped" src="${art('pedestal')}" alt=""><img class="ch-img" src="${art('chest')}" alt=""><b class="ch-num num">${i + 1}</b></button>`).join(''));
+      <span class="ch-glow"></span><img class="ch-ped" src="${art('pedestal')}" alt=""><span class="ch-box"><img class="ch-img" src="${art('chest')}" alt=""><b class="ch-num num">${i + 1}</b></span></button>`).join(''));
   const v = show('world', `<div class="world" style="--gc:${Gm.color};--gd:${Gm.deep}">
     <div class="w-title"><img class="w-gem" src="${art('gem_' + g)}" alt=""><div><small>عالم</small><h2>${Gm.name}</h2><span>${Gm.world} · ${Gm.dom}</span></div></div>
     <div class="w-team">${teamChip(t)}<span class="w-hint">اختاروا صندوقًا من الخمسة</span></div>
