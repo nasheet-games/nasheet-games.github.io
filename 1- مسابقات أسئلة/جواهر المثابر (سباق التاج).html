@@ -115,7 +115,7 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 /* ── الشريط العلوي ── */
 .hud-top { position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; background: linear-gradient(180deg, rgba(3, 12, 28, .88), rgba(3, 12, 28, 0)); }
 .hud-brand { display: flex; align-items: center; gap: 14px; }
-.hud-logo { height: 60px; }
+.hud-logo { height: 62px; padding: 4px 12px; border-radius: 14px; background: rgba(255, 255, 255, .94); box-shadow: 0 0 0 2px rgba(255, 196, 61, .6); }
 .hud-title { height: 74px; margin-top: 6px; }
 .hud-mid { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); display: flex; gap: 14px; align-items: center; }
 .hud-round { padding: 8px 28px; border-radius: 999px; background: rgba(6, 20, 44, .85); border: 2px solid var(--edge); font: 600 26px var(--font); }
@@ -151,7 +151,7 @@ body.hud-on #hud .hud-top { pointer-events: auto; }
 
 /* ── التحميل ── */
 .load { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; background: radial-gradient(circle at 50% 45%, #10305C, #030B18 70%); }
-.load-logo { width: 360px; animation: fadeUp .6s ease; }
+.load-logo { width: 400px; padding: 26px 40px 20px; border-radius: 32px; background: rgba(255, 255, 255, .95); box-shadow: 0 0 0 3px rgba(255, 196, 61, .7), 0 20px 60px rgba(0, 0, 0, .5); animation: fadeUp .6s ease; }
 .load-bar { width: 520px; height: 12px; border-radius: 12px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .load-bar i { display: block; height: 100%; background: linear-gradient(90deg, #FF8A00, #FFC43D); transform: scaleX(.1); transform-origin: right; transition: transform .3s; }
 .load-txt { font: 500 24px var(--font); opacity: .8; }
