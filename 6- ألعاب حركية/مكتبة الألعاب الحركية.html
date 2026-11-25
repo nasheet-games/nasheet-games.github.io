@@ -1715,11 +1715,13 @@ CH.relay = (S, C, P, spec, game) => {
       C.move(run, back2, te, 'walk', { speed: 70, endPose: 'stand', seg: { endDir: [1, 0] } });
       // البقية يتقدمون
       for (let i = 1; i < order.length; i++) { const a = order[i]; C.hold(a, tStart, te, i === 1 ? 'crouch' : 'stand', { dir: [1, 0] }); C.move(a, [C.pos(a), slots[i - 1]], te, 'walk', { speed: 55, seg: { endDir: [1, 0] } }); }
+      if (li === 0 && c < 2) (S._rk = S._rk || []).push(tStart, tStart + (te - tStart) * .45, te - .3);
       t = te + .35;
     }
     T = Math.max(T, t + .4);
   });
   S.T = T;
+  if (S._rk) S.stepT = [0, S._rk[0], S._rk[1], S._rk[2], S._rk[3]].filter(v => v != null);
   return new Set();
 };
 
@@ -1743,6 +1745,7 @@ CH.circle = (S, C, P, spec, game) => {
     });
     const tch = ring.length ? ring[0].tl[1].t1 : 4;
     C.say(spec.say || 'صفّر!', tch - .4, tch + 1.4, P.leads[0] || null, [cx + R + 30, cy - R]);
+    S.stepT = [0, tch - .4, tch + 1.2, T - 1.4];
   } else if (spec.pass) {      // تمرير الكرة حول الدائرة
     const k = Math.min(ring.length, 8); T = k * .75 + 1.2;
     const order = ring.slice().sort((a, b) => ang(a) - ang(b));
@@ -1974,7 +1977,7 @@ OVR[1] = (S, C, P, spec, game) => {
   S.trails.push({ pts: [[176, 112], [200, 112]], color: S._trailCol('r') }, { pts: [[248, 112], [224, 112]], color: S._trailCol('b') });
   C.say('برّا الدائرة!', te - .2, te + 1.4, null, [300, 96]);
   C.move(r, [[203, 112], [176, 112]], te + 1.7, 'walk', { speed: 40 }); C.move(b, [[296, 104], [248, 112]], te + 1.7, 'walk', { speed: 50 });
-  S.T = te + 3.2; return busy;
+  S.T = te + 3.2; S.stepT = [0, .4, t - 2.4, te]; return busy;
 };
 
 // ------------------------------------------------ مشهد افتراضي لألعاب بدون مخطط (المضافة من المعلم)
@@ -1988,13 +1991,51 @@ function fallbackSpec(game) {
   return { a: 'scatter', n: 12, say: 'قف!', m: [{ f: 'run' }, { f: 'freeze' }] };
 }
 
+// ------------------------------------------------ عدّة كتابة المشاهد يدوياً (لكل لعبة مشهد يطابق خطواتها)
+const PLAYS = {};
+function kit(S, C, P, game) {
+  let seed = game.id * 7 + 3; const R = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  const posOf = w => Array.isArray(w) ? w : C.pos(w);
+  const K = {
+    S, C, R, PH, outN: 0, pos: posOf,
+    p(x, z, team = 'b', o = {}) { const a = C.actor(x, z, team, o); P.toks.push(a); a._base = [x, z]; return a; },
+    lead(x = 384, z = 36, o = {}) { const a = C.actor(x, z, 'k', Object.assign({ lead: true, face: 180 }, o)); a.ch = 't'; a._base = [x, z]; P.leads.push(a); return a; },
+    row(n, x0, z, dx, team, o = {}) { return Array.from({ length: n }, (_, i) => K.p(x0 + i * dx, z, typeof team === 'function' ? team(i) : team, Object.assign({}, o))); },
+    col(n, x, z0, dz, team, o = {}) { return Array.from({ length: n }, (_, i) => K.p(x, z0 + i * dz, typeof team === 'function' ? team(i) : team, Object.assign({}, o))); },
+    ring(n, cx, cz, r, team = 'b', o = {}) { return Array.from({ length: n }, (_, i) => { const a0 = i / n * Math.PI * 2 - Math.PI / 2, x = cx + r * Math.cos(a0), z = cz + r * Math.sin(a0); return K.p(x, z, typeof team === 'function' ? team(i) : team, Object.assign({ face: faceTo([x, z], [cx, cz]) }, o)); }); },
+    spread(n, team = 'b', box = [40, 40, 384, 210], o = {}) { const L = [], cols = Math.ceil(Math.sqrt(n * 1.6)), rows = Math.ceil(n / cols); for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); const x = box[0] + (c + .5 + (R() - .5) * .5) * (box[2] - box[0]) / cols, z = box[1] + (r + .5 + (R() - .5) * .45) * (box[3] - box[1]) / rows; L.push(K.p(x, z, typeof team === 'function' ? team(i) : team, Object.assign({ face: 180 }, o))); } return L; },
+    item(kind, x, z, o = {}) { const it = Object.assign({ kind, x, z }, o); S.items.push(it); return it; },
+    paint(svg) { S._paint.push(svg); },
+    lineM(x1, z1, x2, z2, o = {}) { K.paint(`<line x1="${x1}" y1="${z1}" x2="${x2}" y2="${z2}" stroke="${o.c || '#fff'}" stroke-width="${o.w || 4}" ${o.dash ? 'stroke-dasharray="9 7"' : ''} stroke-linecap="round" opacity="${o.op || .92}"/>`); },
+    circM(cx, cz, r, o = {}) { K.paint(`<circle cx="${cx}" cy="${cz}" r="${r}" fill="${o.fill || 'none'}" ${o.fill ? `fill-opacity="${o.fo || .25}"` : ''} stroke="${o.c || '#fff'}" stroke-width="${o.w || 4}" ${o.dash ? 'stroke-dasharray="9 7"' : ''} opacity="${o.op || .92}"/>`); },
+    rectM(x, z, w, h, o = {}) { K.paint(`<rect x="${x}" y="${z}" width="${w}" height="${h}" rx="${o.rx || 10}" fill="${o.fill || 'none'}" ${o.fill ? `fill-opacity="${o.fo || .3}"` : ''} stroke="${o.c || '#fff'}" stroke-width="${o.w || 4}" ${o.dash ? 'stroke-dasharray="9 7"' : ''}/>`); },
+    textM(x, z, t, o = {}) { K.paint(`<text x="${x}" y="${z}" font-size="${o.s || 16}" fill="${o.c || '#fff'}" text-anchor="middle" font-family="Tajawal,Segoe UI,Tahoma,sans-serif" font-weight="800">${String(t).replace(/[<&]/g, '')}</text>`); },
+    label(x, z, text) { S.labels.push({ x, z, text }); },
+    measure(x1, z1, x2, z2, text) { S.marks.push({ kind: 'measure', x1, z1, x2, z2, text }); },
+    ground(k) { S._ground = k; },
+    go(a, to, t0, pose = 'run', o = {}) { const pts = Array.isArray(to[0]) ? [posOf(a), ...to] : [posOf(a), to]; return C.move(a, pts, t0, pose, o); },
+    hold(a, t0, t1, pose, o = {}) { return C.hold(a, t0, t1, pose, o); },
+    all(L, t0, t1, pose, o = {}) { L.forEach((a, i) => C.hold(a, t0 + (o.st || 0) * i, t1, pose, o)); return t1; },
+    say(who, text, t0, dur = 2.3) { S.bubbles.push({ text, t0, t1: t0 + dur, actor: who && who.id != null ? who.id : null, x: Array.isArray(who) ? who[0] : 0, z: Array.isArray(who) ? who[1] : 0 }); return t0 + dur; },
+    ball(from, to, t0, dur = .7, o = {}) { const a = posOf(from), b = posOf(to), tr = o.track || o.kind || 'ball'; let f = S.fx.find(q => q._track === tr); if (!f) { f = { kind: o.kind || 'ball', tl: [], _track: tr, hideIdle: o.hideIdle }; S.fx.push(f); } f.tl.push({ t0, t1: t0 + dur, from: a, to: b, h: o.h != null ? o.h : dist(a, b) * .28 + 10, y0: o.y0 != null ? o.y0 : PH * .6, y1: o.y1 != null ? o.y1 : PH * .55 }); if (o.until) f.until = o.until; f.tl.sort((x, y) => x.t0 - y.t0); return t0 + dur; },
+    toss(a, b, t0, o = {}) { const pa = posOf(a), pb = posOf(b), dur = o.dur || Math.max(.55, dist(pa, pb) / 170); C.hold(a, t0 - .25, t0 + .2, 'throw', { dir: norm([pb[0] - pa[0], pb[1] - pa[1]]) }); if (b && b.id != null) C.hold(b, t0 + dur - .3, t0 + dur + .35, 'catch', { dir: norm([pa[0] - pb[0], pa[1] - pb[1]]) }); return K.ball(pa, pb, t0, dur, o); },
+    out(a, t, o = {}) { const k = K.outN++, to = o.to || [400 - (k % 6) * 22, 240 + Math.floor(k / 6) * 16]; const p0 = posOf(a); a.tl.push({ k: 'hold', t0: t, t1: t + .5, x: p0[0], z: p0[1], pose: 'stand' }); a._end = p0; const t2 = C.move(a, [p0, to], t + .5, 'walk', { speed: 70 }); C.hold(a, t2, 900, 'sit', { face: 180 }); return t2; },
+    carry(a, kind, t0, t1, text) { a.tl.push({ k: 'hold', t0, t1, x: posOf(a)[0], z: posOf(a)[1], pose: 'carry', carry: kind }); if (text) a.carryText = text; return t1; },
+    trail(pts, team = 'o', o = {}) { S.trails.push(Object.assign({ pts, color: S._trailCol(team) }, o)); },
+    steps(...t) { S.stepT = t; },
+    T(t) { K._T = t; },
+  };
+  return K;
+}
+
 // ------------------------------------------------ البناء
 const CACHE = new Map();
-function build(game, spec) {
-  const key = game.id + '|' + (spec ? JSON.stringify(spec).length : 0);
+function build(game, spec, noPlay) {
+  const key = game.id + '|' + (spec ? JSON.stringify(spec).length : 0) + (noPlay ? '|np' : '');
   if (CACHE.has(key)) return CACHE.get(key);
   spec = spec || fallbackSpec(game);
-  const cap = window.PIC.capture(spec, game.place);
+  const play = !noPlay && PLAYS[game.id];
+  const cap = play ? { k: spec.bg || (spec.a === 'class' || (game.place && !/[سب]/.test(game.place)) ? 'floor' : game.place === 'ب' ? 'sand' : 'grass'), svg: '', rec: [] } : window.PIC.capture(spec, game.place);
   const S = { key: 'g' + game.id, id: game.id, actors: [], items: [], fx: [], trails: [], labels: [], marks: [], bubbles: [], decor: [], T: 8, _paint: [] };
   S.markings = cap.svg.replace(/stroke="#1f2a37"/g, 'stroke="#241a52" stroke-opacity=".6"').replace(/stroke="#64748b"/g, 'stroke="#ffffff" stroke-opacity=".8"');
   S._trailCol = t => ({ r: '#ff6b6b', b: '#5aa9ff', g: '#4ade80', y: '#ffd84d', p: '#c4a5ff', k: '#ffffff', o: '#ffb35a' })[t] || '#ffffff';
@@ -2005,10 +2046,20 @@ function build(game, spec) {
     if (best) { best.carry = 'card'; best.carryText = o.text; best.pose = 'carry'; S.items.splice(S.items.indexOf(o), 1); }
     else { o.z = o.z; o.onStand = 1; }
   });
-  const busy = (OVR[game.id] ? OVR[game.id](S, C, P, spec, game) : (CH[spec.a] || CH.free)(S, C, P, spec, game)) || new Set();
-  crowd(S, C, P, spec, game, busy, S.T);
+  if (play) {
+    try {
+      const K = kit(S, C, P, game); play(K, game, spec);
+      let end = 0; S.actors.forEach(a => a.tl.forEach(q => { if (q.t1 < 800) end = Math.max(end, q.t1); })); S.fx.forEach(f => (f.tl || []).forEach(q => { const still = q.from && q.to && q.from[0] === q.to[0] && q.from[1] === q.to[1]; if (q.t1 < 50 && !still) end = Math.max(end, q.t1); }));
+      S.T = K._T || end + 1.2; S._play = 1;
+      // نهاية الدورة: الكل يرجع لمكانه بهدوء
+      S.actors.forEach(a => { if (a._base) a.tl.push({ k: 'hold', t0: S.T - .6, t1: 999, x: a._base[0], z: a._base[1], pose: a.pose || 'stand', face: a.face, alpha: 'in' }); });
+    } catch (e) { console.warn('play', game.id, e); CACHE.delete(key); return build(game, spec, true); }
+  } else {
+    const busy = (OVR[game.id] ? OVR[game.id](S, C, P, spec, game) : (CH[spec.a] || CH.free)(S, C, P, spec, game)) || new Set();
+    crowd(S, C, P, spec, game, busy, S.T);
+  }
   // المشرف: يصفّر أحياناً
-  P.leads.forEach(l => { l.ch = 't'; if (!l.tl.some(s => s.pose === 'point' || s.pose === 'call')) l.tl.push({ k: 'hold', t0: .2, t1: 1.3, x: l.x, z: l.z, pose: 'call' }); });
+  P.leads.forEach(l => { l.ch = 't'; if (!S._play && !l.tl.some(s => s.pose === 'point' || s.pose === 'call')) l.tl.push({ k: 'hold', t0: .2, t1: 1.3, x: l.x, z: l.z, pose: 'call' }); });
   // بقية الفقاعات الحرة: تظهر بعد البداية
   S.bubbles.filter(b => b._free).forEach((b, i) => { b.t0 = .8 + i * 1.2; b.t1 = Math.min(S.T - .2, b.t0 + 2.6); });
   if (S._paint.length) S.markings += S._paint.join('');
@@ -2025,6 +2076,7 @@ function build(game, spec) {
   // الأرضية
   S.ground = cap.k === 'floor' ? (spec.a === 'class' || /^ف+$/.test(game.place) ? 'tiles' : 'floor') : cap.k === 'sand' ? 'sand' : cap.k === 'water' ? 'water' : (game.sec === 'جلسة' && !/[سب]/.test(game.place) ? 'carpet' : 'grass');
   if (game.sec === 'جلسة' && cap.k === 'floor') S.ground = 'carpet';
+  if (S._ground) S.ground = S._ground;
   // الحدود
   let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; const add = (x, z, p = 0) => { x0 = Math.min(x0, x - p); x1 = Math.max(x1, x + p); z0 = Math.min(z0, z - p); z1 = Math.max(z1, z + p); };
   S.actors.forEach(a => { add(a.x, a.z, 16); a.tl.forEach(s => (s.pts || []).forEach(p => add(p[0], p[1], 12))); });
@@ -2034,8 +2086,8 @@ function build(game, spec) {
   x0 = Math.max(-6, Math.min(x0, 60)); z0 = Math.max(-6, Math.min(z0, 40)); x1 = Math.min(430, Math.max(x1, 364)); z1 = Math.min(240, Math.max(z1, 186));
   S.bounds = [x0, z0, x1, z1];
   decorate(S, game);
-  S.T = Math.max(5, Math.min(24, S.T));
-  S.thumbT = Math.min(S.T * .3, 3.2);
+  S.T = Math.max(5, Math.min(S._play ? 34 : 24, S.T));
+  if (S.thumbT == null) S.thumbT = S.stepT && S.stepT.length > 2 ? S.stepT[2] + .6 : Math.min(S.T * .3, 3.2);
   CACHE.set(key, S); if (CACHE.size > 40) CACHE.delete(CACHE.keys().next().value);
   return S;
 }
@@ -2055,7 +2107,989 @@ function decorate(S, game) {
   D.forEach(([kind, x, z]) => S.decor.push({ kind, x, z, flat: false }));
 }
 
-window.SCENE = { build, CH, sample, PMAP };
+window.SCENE = { build, CH, sample, PMAP, PLAYS, kit };
+})();
+
+</script>
+<script>/* plays1 */
+// مشاهد مكتوبة يدوياً حسب خطوات كل لعبة (الجزء ١). كل مشهد يحدد توقيت خطواته بـ K.steps(...)
+(function () {
+'use strict';
+const PL = SCENE.PLAYS;
+const PH = 56;
+const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+// ———————— أدوات مشتركة
+// المشرف على اليسار والطلاب قدامه وجوههم له (نشوف وجيههم من الكاميرا)
+function classFacing(K, n, box = [150, 50, 392, 210], team = 'b') { const lead = K.lead(50, 128, { face: 90 }); const L = K.spread(n, team, box, { face: -90 }); return [lead, L]; }
+function stepFB(K, a, t, dx, dz, pose = 'walk') { const p = K.pos(a).slice(); const t1 = K.go(a, [p[0] + dx, p[1] + dz], t, pose, { speed: 75 }); return K.go(a, p, t1 + .15, pose, { speed: 75 }); }
+function wander(K, L, t0, t1, r = 28, pose = 'walk') {
+  L.forEach((a, i) => { const b = K.pos(a).slice(), pts = []; for (let k = 0; k < 3; k++) { const g = K.R() * 6.28; pts.push([cl(b[0] + Math.cos(g) * r, 24, 400), cl(b[1] + Math.sin(g) * r * .8, 24, 224)]); }
+    let len = 0, prev = b; [...pts, b].forEach(q => { len += Math.hypot(q[0] - prev[0], q[1] - prev[1]); prev = q; });
+    K.go(a, [...pts, b], t0 + (i % 3) * .08, pose, { speed: len / Math.max(.5, t1 - t0 - .3) }); });
+  return t1;
+}
+// سباق خطف: كل لاعب يركض لأقرب أداة، والأخير ما يلقى
+function grab(K, L, items, t, o = {}) {
+  const free = items.slice(); let end = t, loser = null;
+  L.forEach((a, i) => {
+    const p = K.pos(a).slice(), late = o.loser === i;
+    let bi = -1, bd = 1e9; free.forEach((it, j) => { const d = Math.hypot(it.x - p[0], it.z - p[1]); if (d < bd) { bd = d; bi = j; } });
+    const t0 = t + .15 + K.R() * .35 + (late ? .5 : 0);
+    if (bi >= 0 && !late) {
+      const it = free.splice(bi, 1)[0], dx = p[0] > it.x ? 11 : -11; const t1 = K.go(a, [it.x + dx, it.z + 2], t0, 'run', { speed: 120 });
+      it.hide = tt => tt > t1 + .2; K.hold(a, t1, t1 + .35, 'crouch');
+      const t2 = K.go(a, p, t1 + .35, o.back || 'run', { speed: 100, seg: { carry: it.kind } }); K.hold(a, t2, t2 + 1.3, 'cheer', { carry: it.kind }); end = Math.max(end, t2);
+    } else { loser = a; const t1 = K.go(a, [p[0] + (o.dir || -60), p[1]], t0, 'run', { speed: 110 }); K.hold(a, t1, t1 + .9, 'freeze'); end = Math.max(end, t1 + .9); }
+  });
+  return [end, loser];
+}
+function blindWalk(K, a, pts, t0, speed = 30) { return K.go(a, pts, t0, 'blind', { speed }); }
+
+// ———————— ٢ الحركة الممنوعة
+PL[2] = K => {
+  const [lead, L] = classFacing(K, 12);
+  K.say(lead, 'الممنوع: اليدين فوق الراس!', .3, 2.4); K.hold(lead, .3, 2.6, 'call');
+  let t = 3; [['point', 'point'], ['crouch', 'clap'], ['jump', 'call']].forEach(([ps, tp]) => { K.hold(lead, t, t + 1.3, tp); K.all(L, t + .25, t + 1.3, ps, { bounce: ps === 'jump' ? 6 : 0 }); t += 1.6; });
+  const t3 = t; K.hold(lead, t, t + 1.6, 'clap'); K.say(lead, 'هذي؟', t, 1.3); K.hold(L[4], t + .35, t + 1.6, 'cheer'); K.all(L.filter(a => a !== L[4]), t + .35, t + 1.6, 'stand');
+  const t4 = t + 1.8; K.say(L[4], 'أوه!', t4 - .3, 1.2); K.out(L[4], t4);
+  K.steps(0, 3, t3, t4);
+};
+// ———————— ٣ شجرة نملة
+PL[3] = K => {
+  const [lead, L] = classFacing(K, 12);
+  let t = 1.4; K.say(lead, 'شجرة!', t, 1.3); K.all(L, t + .4, t + 1.6, 'cheer'); t += 2;
+  K.say(lead, 'نملة!', t, 1.3); K.all(L, t + .4, t + 1.6, 'crouch'); t += 2;
+  const tq = t; K.say(lead, 'نحلة!', t, 1.5); K.hold(L[7], t + .4, t + 1.7, 'crouch'); t += 2; K.out(L[7], t);
+  K.steps(0, 1.4, tq, t);
+};
+// ———————— ٤ قلّد (أنفي أذني)
+PL[4] = K => {
+  const [lead, L] = classFacing(K, 12);
+  K.say(lead, 'سوّوا اللي أقوله، مو اللي أسويه', .3, 2.4);
+  let t = 2.9; K.say(lead, 'أنفي!', t, 1.4); K.hold(lead, t, t + 1.4, 'point'); K.all(L, t + .35, t + 1.5, 'point'); t += 1.9;
+  K.say(lead, 'راسي!', t, 1.4); K.hold(lead, t, t + 1.4, 'call'); K.all(L, t + .35, t + 1.5, 'handup'); t += 1.9;
+  const t3 = t; K.say(lead, 'أذني!', t, 1.6); K.hold(lead, t, t + 1.6, 'point'); K.all(L.filter(a => a !== L[5]), t + .35, t + 1.7, 'handup'); K.hold(L[5], t + .35, t + 1.7, 'point');
+  const t4 = t + 2; K.out(L[5], t4); K.steps(0, 2.9, t3, t4);
+};
+// ———————— ٥ قصة الأسماء
+PL[5] = K => {
+  const L = K.ring(10, 212, 120, 78, 'b', { pose: 'sit' }); const lead = K.lead(212, 120, { face: 180 });
+  ['تفاح', 'موز', 'برتقال', 'عنب'].forEach((f, i) => { K.say(L[i], f, .3 + i * .25, 2.2); K.say(L[i + 5], f, .4 + i * .25, 2.1); });
+  K.say(lead, '...وراح يشتري تفاح', 3, 2); K.hold(lead, 3, 5, 'call');
+  [L[0], L[5]].forEach(a => K.hold(a, 3.8, 4.8, 'stand'));
+  K.say(lead, '...ولقى موز!', 5.4, 2); K.hold(L[1], 6.1, 7, 'stand'); K.hold(L[6], 7.1, 7.9, 'stand');
+  K.out(L[6], 8.2); K.steps(0, 2.9, 3.6, 7.2);
+};
+// ———————— ٦ بطة بطريق
+PL[6] = K => {
+  const lead = K.lead(60, 128, { face: 90 }); const L = K.col(7, 236, 44, 30, 'b', { face: -90 }); K.lineM(262, 26, 262, 236);
+  K.say(lead, '...شاف بطريق', .5, 1.6);
+  let t = 2.4; K.say(lead, 'بطة!', t, 1.3); L.forEach(a => stepFB(K, a, t + .35, -18, 0)); t += 2.2;
+  const t3 = t; K.say(lead, 'بطاطس!', t, 1.5); stepFB(K, L[3], t + .4, -18, 0);
+  const t4 = t + 2; K.out(L[3], t4); K.steps(0, .5, 2.4, t4);
+};
+// ———————— ٧ مسابقة سيف
+PL[7] = K => {
+  const lead = K.lead(64, 40, { face: 90 }); const L = K.col(7, 300, 44, 28, 'b', { face: -90 });
+  const caps = L.slice(0, 6).map((a, i) => K.item('cap', 196, 44 + i * 28 + (i > 2 ? 28 : 0), { team: 'o' }));
+  K.say(lead, '...ركب سيارة', .9, 1.5); K.say(lead, '...ونزل سيل', 2.6, 1.5); K.all(L, 2.6, 4, 'crouch');
+  const t3 = 4.4; K.say(lead, 'سيف!', t3, 1.3);
+  const [e, loser] = grab(K, L, caps, t3 + .2, { loser: 3 });
+  K.out(loser, e + .2); K.steps(0, .9, t3, e + .2);
+};
+// ———————— ٨ الأكواب (خطف الكوب)
+PL[8] = K => {
+  const lead = K.lead(64, 40, { face: 90 }); const L = K.col(6, 300, 52, 32, 'b', { face: -90 });
+  const cups = [0, 1, 2, 3, 4].map(i => K.item('cup', 190, 60 + i * 38));
+  K.say(lead, 'جاهزين…', .8, 2); K.all(L, 1, 3, 'crouch');
+  const t3 = 3.3; K.say(lead, 'صفّر!', t3, 1);
+  const [e, loser] = grab(K, L, cups, t3 + .15, { loser: 2 });
+  K.out(loser, e + .2); K.steps(0, .8, t3, e + .2);
+};
+// ———————— ١٠ المجموعات (تجمّعوا!)
+PL[10] = K => {
+  const lead = K.lead(388, 32); const L = K.spread(13, 'b', [40, 40, 370, 220]);
+  wander(K, L, .3, 3.4, 30);
+  K.say(lead, 'أربعة!', 3.5, 1.6); K.hold(lead, 3.5, 4.6, 'call');
+  const C0 = [[110, 80], [290, 80], [200, 175]], rest = L.slice(); let end = 0;
+  C0.forEach(c => { for (let k = 0; k < 4; k++) { let bi = 0, bd = 1e9; rest.forEach((a, j) => { const p = K.pos(a), d = Math.hypot(p[0] - c[0], p[1] - c[1]); if (d < bd) { bd = d; bi = j; } }); const a = rest.splice(bi, 1)[0], g = k / 4 * 6.28, to = [c[0] + Math.cos(g) * 16, c[1] + Math.sin(g) * 12]; const t1 = K.go(a, to, 3.9 + K.R() * .3, 'run', { speed: 115 }); K.hold(a, t1, t1 + .1, 'catch', { face: 0 }); K.hold(a, t1 + .1, 7.6, 'sit', { dir: [c[0] - to[0], c[1] - to[1]] }); end = Math.max(end, t1); } });
+  const lone = rest[0]; K.go(lone, [212, 120], 3.9, 'run', { speed: 70 }); K.hold(lone, 5.2, 6.4, 'freeze');
+  K.out(lone, 6.5); K.steps(0, 3.5, 4, 6.5);
+};
+// ———————— ١١ كر وفر
+PL[11] = K => {
+  K.lineM(212, 18, 212, 232, { w: 5 });
+  const R = [[60, 60], [80, 120], [60, 180], [130, 90], [140, 160]].map(p => K.p(p[0], p[1], 'r', { face: 90 }));
+  const B = [[364, 60], [344, 120], [364, 180], [294, 90], [284, 160]].map(p => K.p(p[0], p[1], 'b', { face: -90 }));
+  const raider = R[3], hit = B[3];
+  let t = K.go(raider, [[200, 96], [282, 96]], 1, 'run', { speed: 120, trail: '#ff6b6b' }); K.hold(raider, t, t + .3, 'point', { dir: [1, 0] }); K.hold(hit, t, t + .5, 'freeze');
+  const t3 = t + .3; t = K.go(raider, [[230, 110], [150, 120]], t3, 'run', { speed: 125 });
+  K.go(B[1], [[250, 116], [222, 118]], t3 + .15, 'run', { speed: 115 }); K.go(B[4], [[240, 150], [224, 140]], t3 + .25, 'run', { speed: 110 });
+  K.hold(raider, t, t + 1, 'cheer'); K.say(raider, 'رجعت سالم!', t, 1.4); const t4 = t + .3; K.out(hit, t4);
+  const t5 = t + 1.8; K.go(B[0], [[230, 70], [170, 66]], t5, 'run', { speed: 120, trail: '#5aa9ff' }); K.go(B[0], [364, 60], t5 + 1.1, 'run', { speed: 120 });
+  K.steps(0, 1, t3, t4, t5);
+};
+// ———————— ١٢ رفع الكورة (نادِ الرقم)
+PL[12] = K => {
+  const L = K.ring(8, 212, 120, 86, 'b').map((a, i) => (a.n = i + 1, a)); const c = K.p(212, 128, 'y', { face: 180 });
+  K.hold(c, .7, 1.1, 'throw', { dir: [0, 1] }); K.ball([212, 128], [214, 118], 1, 1.3, { h: 80, y0: PH * .7, y1: PH * .6 }); K.say(c, '٣!', 1, 1.4);
+  const p3 = L[2]; let t = K.go(p3, [220, 120], 1.05, 'run', { speed: 120 }); K.hold(p3, t, t + .5, 'catch', { dir: [0, 1] });
+  K.go(c, [212, 172], 1.4, 'walk', { speed: 50 });
+  const t3 = 3; K.hold(p3, t3 - .2, t3 + .2, 'throw'); K.ball([220, 120], [196, 112], t3, 1.5, { h: 90, y0: PH * .7, y1: 2 }); K.say(p3, '٧!', t3, 1.5);
+  const p7 = L[6]; t = K.go(p7, [200, 114], t3 + .5, 'run', { speed: 90 }); K.hold(p7, t, t + .8, 'freeze');
+  const t4 = t + .9; K.out(p7, t4); K.steps(0, .9, 1.6, t4);
+};
+// ———————— ١٤ ارمِ الكرة (الرقم المطلوب)
+PL[14] = K => {
+  K.circM(212, 120, 96); const L = K.ring(7, 212, 120, 40, 'b').map((a, i) => (a.n = i + 1, a)); const lead = K.lead(388, 32);
+  K.item('ball', 212, 122, { hide: t => t > 2 });
+  K.say(lead, '٥!', 1.2, 1.3); const p5 = L[4];
+  let t = K.go(p5, [216, 124], 1.5, 'run', { speed: 100 }); K.hold(p5, t, t + .4, 'crouch');
+  const t3 = 1.6; L.filter(a => a !== p5).forEach((a, i) => { const p = K.pos(a), v = [p[0] - 212, p[1] - 120], m = Math.hypot(...v) || 1; K.go(a, [212 + v[0] / m * 86, 120 + v[1] / m * 70], t3 + K.R() * .2, 'run', { speed: 110 }); });
+  const t4 = 3.4; K.say(p5, 'وقّف!', t4, 1.3); L.filter(a => a !== p5).forEach(a => K.hold(a, t4 + .2, t4 + 3, 'freeze'));
+  const t5 = 5; const tg = L[1]; K.toss(p5, tg, t5, { h: 14 }); K.hold(tg, t5 + .6, t5 + 1.4, 'freeze'); K.say(tg, 'أصابني!', t5 + .6, 1.3);
+  K.steps(0, 1.2, t3, t4, t5);
+};
+// ———————— ١٥ الحاجز البشري
+PL[15] = K => {
+  const L = K.ring(12, 212, 120, 70, 'b'); const c = K.p(212, 122, 'y', { face: 180 });
+  K.say(c, 'معي الكرة', .5, 1.5);
+  const tg = L[6], p = K.pos(tg); K.hold(c, 2, 2.5, 'kick', { dir: [p[0] - 212, p[1] - 122] }); K.ball([214, 126], [p[0] * .9 + 21, p[1] * .9 + 12], 2.2, .6, { h: 2, y0: 3, y1: 3 });
+  K.hold(tg, 2.4, 3.3, 'crouch'); K.hold(L[5], 2.4, 3.3, 'crouch'); K.hold(L[7], 2.4, 3.3, 'crouch');
+  K.ball([p[0] * .9 + 21, p[1] * .9 + 12], [212, 126], 3, .6, { h: 2, y0: 3, y1: 3 });
+  const t5 = 4; const a1 = L[2], a2 = L[9], p1 = K.pos(a1).slice(), p2 = K.pos(a2).slice();
+  K.go(a1, [[212, 70], p2], t5, 'run', { speed: 130 }); K.go(a2, [[212, 170], p1], t5, 'run', { speed: 130 });
+  K.steps(0, .5, 2, 2.6, t5);
+};
+// ———————— ١٦ حركة الدودة
+PL[16] = K => {
+  const L = K.row(6, 120, 128, 34, 'r', { face: -90, pose: 'sit' }); K.lineM(40, 60, 40, 200, { w: 5 }); K.label(40, 70, 'الخط');
+  let t = .9; for (let i = 0; i < 5; i++) { K.hold(L[i], t - .2, t + .3, 'catch'); K.ball(L[i], L[i + 1], t, .5, { h: 22, y0: PH * .5, y1: PH * .45 }); t += .62; }
+  const t3 = .9 + .62 * 2, last = L[5]; K.hold(last, t, t + .3, 'stand');
+  const t4 = t + .3; K.S.fx.find(f => f._track === 'ball').until = t4; const tt = K.go(last, [[290, 160], [90, 160], [86, 128]], t4, 'run', { speed: 130, seg: { carry: 'ball' } }); K.hold(last, tt, 900, 'sit');
+  K.steps(0, .7, t3, t4, tt);
+};
+// ———————— ١٧ تسلسل الكور
+PL[17] = K => {
+  const L = K.row(6, 90, 120, 44, 'g', { face: -90 }); const bk = K.item('basket', 360, 122);
+  let t = 1; for (let i = 0; i < 5; i++) { K.hold(L[i], t - .25, t + .25, 'throw', { dir: [-1, 0] }); K.hold(L[i + 1], t + .4, t + .8, 'catch', { dir: [-1, 0] }); K.ball(L[i], L[i + 1], t, .6, { h: 30, y0: PH * .9, y1: PH * .6 }); t += .75; }
+  const t3 = t; K.hold(L[5], t, t + .4, 'crouch'); K.ball(L[5], [360, 122], t + .1, .4, { h: 6, y1: 8 });
+  K.steps(0, 1, 2.5, t3);
+};
+// ———————— ١٨ الكرة الطائرة (لا تطيح!)
+PL[18] = K => {
+  const L = K.ring(8, 212, 120, 80, 'b'); let t = 1, i = 0; const order = [0, 3, 6, 1, 4, 7, 2];
+  for (let k = 0; k < order.length - 1; k++) { const a = L[order[k]], b = L[order[k + 1]]; K.hold(a, t - .2, t + .2, 'handup'); K.ball(a, b, t, .85, { h: 70, y0: PH * 1.1, y1: PH * 1.1 }); K.say(a, String(k + 1), t, .8); t += .95; }
+  K.steps(0, 1, 2.9, 4.8);
+};
+// ———————— ١٩ تخلّص من الكرة
+PL[19] = K => {
+  const L = K.ring(10, 212, 126, 76, 'b'); const lead = K.lead(388, 40, { face: 0 });
+  K.say(lead, '♪ النشيد شغّال', .4, 4); let t = 1.1;
+  for (let k = 0; k < 7; k++) { K.toss(L[k], L[k + 1], t, { dur: .42, h: 6 }); t += .52; }
+  const t3 = t + .1; K.say(lead, 'وقف!', t3, 1.2); K.hold(L[7], t3, t3 + 1, 'freeze', { carry: 'ball' });
+  const t4 = t3 + 1.2; K.out(L[7], t4); K.steps(0, 1.1, t3, t4);
+};
+// ———————— ٢١ القاطرة
+PL[21] = K => {
+  K.lineM(40, 40, 40, 220, { w: 5 }); K.lineM(384, 40, 384, 220, { dash: 1, c: '#241a52' }); K.label(384, 34, 'النهاية');
+  const lanes = [['r', 80], ['b', 170]]; let ends = [];
+  lanes.forEach(([tm, z], li) => {
+    const P = [40, 125, 210, 295].map(x => K.p(x + 10, z, tm, { face: 90 }));
+    let t = 1 + li * .15; t = K.go(P[0], [P[1].x - 14, z], t, 'run', { speed: 110 }); K.hold(P[0], t, t + .3, 'point');
+    t = K.go(P[1], [P[2].x - 14, z], t + .3, 'hop', { speed: 55 }); t = K.go(P[2], [P[3].x - 14, z], t + .2, 'crawl', { speed: 34 });
+    t = K.go(P[3], [384, z], t + .2, 'crawl', { speed: 30 }); K.hold(P[3], t, t + 1, 'cheer'); ends.push(t);
+  });
+  K.steps(0, 1, 3.4, 6);
+};
+// ———————— ٢٣ سباق الحجلة
+PL[23] = K => {
+  K.lineM(70, 30, 70, 226, { w: 5 }); K.lineM(352, 30, 352, 226, { dash: 1, c: '#241a52' }); K.label(70, 24, 'البداية'); K.label(352, 24, 'النهاية');
+  const L = ['r', 'b', 'g', 'y'].map((tm, i) => K.p(60, 56 + i * 50, tm, { face: 90 }));
+  K.all(L, .4, 1.2, 'hop');
+  const sp = [62, 56, 60, 52]; const ends = L.map((a, i) => K.go(a, [352, 56 + i * 50], 1.2, 'hop', { speed: sp[i] }));
+  // الأزرق ينزّل رجله ويرجع خطوتين
+  const b = L[1]; K.hold(b, 3, 3.6, 'stand'); K.say(b, 'نزّلت رجلي', 3, 1.3);
+  L.forEach((a, i) => K.hold(a, ends[i], ends[i] + 1.2, 'cheer'));
+  K.steps(0, .4, 3, Math.min(...ends));
+};
+// ———————— ٢٦ كرة بين رأسين
+PL[26] = K => {
+  K.lineM(70, 30, 70, 226, { w: 5 }); K.lineM(352, 30, 352, 226, { dash: 1, c: '#241a52' });
+  [['r', 80, 46], ['b', 165, 40]].forEach(([tm, z, sp], k) => {
+    const a = K.p(80, z - 11, tm, { face: 180 }), b = K.p(80, z + 11, tm, { face: 0 });
+    const t1 = K.go(a, [340, z - 11], 1.8, 'walk', { speed: sp }); K.go(b, [340, z + 11], 1.8, 'walk', { speed: sp });
+    K.S.fx.push({ kind: 'ball', tl: [{ t0: 0, t1: 1.8, from: [80, z], to: [80, z], y0: PH * .93, y1: PH * .93 }, { t0: 1.8, t1, from: [80, z], to: [340, z], y0: PH * .93, y1: PH * .93, h: 0 }, { t0: t1, t1: t1 + 3, from: [340, z], to: [340, z], y0: PH * .93, y1: PH * .93 }] });
+    K.hold(a, t1, t1 + 1, 'cheer'); K.hold(b, t1, t1 + 1, 'cheer');
+  });
+  K.steps(0, .9, 1.8, 4.5);
+};
+// ———————— ٢٧ دفع الكرة بالرأس
+PL[27] = K => {
+  K.lineM(70, 30, 70, 226, { w: 5 }); K.lineM(352, 30, 352, 226, { dash: 1, c: '#241a52' });
+  ['r', 'b', 'g'].forEach((tm, i) => { const z = 70 + i * 55, a = K.p(64, z, tm, { face: 90, pose: 'crawl' }), sp = 26 + i * 3;
+    const t1 = K.go(a, [330, z], 1, 'crawl', { speed: sp }); K.S.fx.push({ kind: 'ball', tl: [{ t0: 0, t1: 1, from: [84, z + 2], to: [84, z + 2], y0: 5, y1: 5 }, { t0: 1, t1, from: [84, z + 2], to: [350, z + 2], y0: 5, y1: 5, h: 0 }, { t0: t1, t1: t1 + 2, from: [350, z + 2], to: [350, z + 2], y0: 5, y1: 5 }] }); });
+  K.steps(0, 1, 3);
+};
+// ———————— ٣٢ الدقدقة
+PL[32] = K => {
+  const a = K.p(80, 130, 'o', { face: 90 }); const pts = []; for (let x = 80; x <= 340; x += 26) pts.push([x, 130]);
+  let t = .6; for (let i = 0; i < pts.length - 1; i++) { K.go(a, pts[i + 1], t, 'walk', { speed: 40 }); K.hold(a, t + .3, t + .6, 'kick', { dir: [1, 0] }); K.ball([pts[i][0] + 10, 130], [pts[i + 1][0] + 10, 130], t, .65, { h: 26, y0: 14, y1: 14 }); t += .65; }
+  K.steps(0, 1.2, 4);
+};
+// ———————— ٣٤ الدوران للكرة
+PL[34] = K => {
+  K.lineM(70, 40, 70, 216, { w: 5 }); const L = ['r', 'b', 'g', 'y'].map((tm, i) => K.p(84, 60 + i * 44, tm, { face: 90 })); const ball = K.item('ball', 330, 128);
+  L.forEach((a, i) => { for (let k = 0; k < 10; k++) K.hold(a, .8 + k * .25 + i * .03, .8 + (k + 1) * .25 + i * .03, 'crouch', { dir: [k % 2 ? 1 : -1, k % 3 ? .4 : -.4] }); });
+  const t3 = 3.5; const lead = K.lead(388, 30); K.say(lead, 'صفّر!', t3, 1);
+  const T1 = L.map((a, i) => K.go(a, [[150, 60 + i * 44 + (i % 2 ? 10 : -10)], [318, 128 + (i - 1.5) * 8]], t3 + .1 + i * .1, 'run', { speed: 95 + i * 6 }));
+  const w = T1.indexOf(Math.min(...T1)); ball.hide = t => t > T1[w]; K.hold(L[w], T1[w], T1[w] + 1.2, 'cheer', { carry: 'ball' });
+  K.steps(0, .8, t3, T1[w]);
+};
+// ———————— ٣٦ الهدّاف الأعمى
+PL[36] = K => {
+  K.item('goal', 380, 120); const a = K.p(70, 132, 'y', { face: 90, blind: true }), g = K.p(70, 168, 'y', { face: 90 });
+  const path = [[150, 140], [230, 118], [320, 122]];
+  const t1 = blindWalk(K, a, path, 1.2, 36); K.go(g, path.map(p => [p[0], p[1] + 34]), 1.2, 'walk', { speed: 36 });
+  K.S.fx.push({ kind: 'ball', tl: [{ t0: 0, t1: 1.2, from: [86, 134], to: [86, 134], y0: 4, y1: 4 }, { t0: 1.2, t1, pts: [[86, 134], ...path.map(p => [p[0] + 14, p[1] + 2])], len: 260, y0: 4, y1: 4 }, { t0: t1 + .3, t1: t1 + .8, from: [334, 124], to: [374, 116], y0: 4, y1: 12, h: 6 }, { t0: t1 + .8, t1: t1 + 3, from: [374, 116], to: [374, 116], y0: 12, y1: 2 }] });
+  K.say(g, 'يمين!', 2.2, 1.2); K.say(g, 'قدّام!', 4, 1.2); K.say(g, 'سدّد!', t1 - .3, 1.2); K.hold(a, t1, t1 + .6, 'kick', { dir: [1, 0] });
+  K.steps(0, 1.2, 2.2, t1);
+};
+// ———————— ٣٧ البحث عن الكرة (الراكب والمركوب)
+PL[37] = K => {
+  const lead = K.lead(360, 70, { face: -90 }); const a = K.p(80, 150, 'b', { face: 90, blind: true }), r = K.p(58, 152, 'b', { face: 90 });
+  K.say(a, 'أنا الحامل', .3, 1.4); K.say(r, 'وأنا الراكب', .9, 1.4);
+  K.hold(lead, 2.2, 6.5, 'point'); K.say(lead, 'الكرة هنا!', 2.2, 1.6); K.item('ball', 346, 66, { hide: t => t > 6.8 });
+  const path = [[160, 130], [260, 96], [330, 76]]; const t1 = blindWalk(K, a, path, 3, 34); K.go(r, path.map(p => [p[0] - 22, p[1] + 2]), 3, 'walk', { speed: 34 });
+  K.say(r, 'يسار شوي…', 4, 1.3); K.hold(a, t1, t1 + 1.4, 'catch', { carry: 'ball' });
+  K.steps(0, 1.2, 2.2, 3.5);
+};
+// ———————— ٣٨ فرقعة البالون الموجّهة
+PL[38] = K => {
+  K.lineM(60, 30, 60, 226, { w: 5 }); K.lineM(364, 30, 364, 226, { w: 3, dash: 1 }); K.label(364, 26, 'الخيط');
+  const a = K.p(70, 128, 'r', { face: 90, blind: true }), g = K.p(386, 128, 'r', { face: -90 });
+  const balls = [[180, 90], [250, 150], [300, 100]].map(([x, z]) => K.item('balloon', x, z, { team: 'b' }));
+  let t = 1; const t1 = blindWalk(K, a, [[150, 110], [168, 96]], t, 32); K.say(g, 'يمين.. قدّام!', 1.2, 1.6); K.hold(a, t1, t1 + .6, 'handup'); balls[0].hide = tt => tt > t1 + .3; K.say([180, 90], 'طاخ!', t1 + .3, 1);
+  const t2 = blindWalk(K, a, [[220, 130], [238, 146]], t1 + .7, 32); K.say(g, 'ارفع يدك!', t2 - .8, 1.2); K.hold(a, t2, t2 + .6, 'handup'); balls[1].hide = tt => tt > t2 + .3; K.say([250, 150], 'طاخ!', t2 + .3, 1);
+  K.steps(0, 1, 1.4, t1);
+};
+// ———————— ٣٩ معركة البالونات (بالون الكاحل)
+PL[39] = K => {
+  K.circM(212, 124, 100); const T = ['r', 'b', 'g', 'y', 'p', 'o'];
+  const L = K.spread(10, i => T[i % 6], [130, 50, 300, 196]); L.forEach(a => a.carry = 'balloon@foot');
+  K.say(L[0], 'بالوني في كاحلي', .3, 1.6);
+  wander(K, L, 2.2, 4.6, 34, 'run');
+  K.hold(L[1], 4.7, 5.4, 'freeze', { carry: null }); K.say(L[1], 'طاخ!', 4.7, 1); K.out(L[1], 5.5);
+  K.hold(L[0], 4.5, 5, 'jump', { bounce: 7 });
+  wander(K, L.filter(a => a !== L[1]), 5.6, 7.4, 26, 'run');
+  K.hold(L[6], 7.5, 8.1, 'freeze', { carry: null }); K.say(L[6], 'طاخ!', 7.5, 1); K.out(L[6], 8.2);
+  K.steps(0, 1, 2.2, 4.7);
+};
+// ———————— ٤٠ جمع العملات (الأوراق الملونة)
+PL[40] = K => {
+  K.rectM(110, 40, 220, 160, { dash: 1 }); const notes = [[150, 80], [190, 150], [260, 90], [300, 160], [230, 120], [170, 110]].map(([x, z]) => K.item('cpaper', x, z));
+  K.say([220, 40], 'انثر الأوراق', .3, 1.5);
+  const a = K.p(120, 120, 'r', { face: 90, blind: true }), b = K.p(320, 120, 'b', { face: -90, blind: true });
+  const ga = K.p(70, 60, 'r', { face: 90 }), gb = K.p(370, 60, 'b', { face: -90 });
+  let ta = blindWalk(K, a, [[150, 92]], 1.6, 30); K.hold(a, ta, ta + .6, 'crouch'); notes[0].hide = t => t > ta + .3; K.say(ga, 'يسارك!', 1.8, 1.3);
+  ta = blindWalk(K, a, [[220, 118]], ta + .7, 30); K.hold(a, ta, ta + .6, 'crouch'); notes[4].hide = t => t > ta + .3;
+  let tb = blindWalk(K, b, [[300, 150]], 1.9, 30); K.hold(b, tb, tb + .6, 'crouch'); notes[3].hide = t => t > tb + .3; K.say(gb, 'قدّامك!', 2.2, 1.3);
+  K.steps(0, 1.5, 1.8, ta + .7);
+};
+// ———————— ٤١ أين الصافرة
+PL[41] = K => {
+  const lead = K.lead(300, 70, { face: 180 }); const L = K.spread(8, 'b', [40, 60, 240, 210], { blind: true, face: 90 });
+  for (let k = 0; k < 5; k++) K.say(lead, 'صفيييير', 1.4 + k * 1.3, .7);
+  L.forEach((a, i) => { const p = K.pos(a), to = [300 - 26 + (i % 3) * 8 - 10, 70 + (i - 4) * 10]; const d = Math.hypot(to[0] - p[0], to[1] - p[1]); K.go(a, [p[0] + (to[0] - p[0]) * (.55 + K.R() * .3), p[1] + (to[1] - p[1]) * (.55 + K.R() * .3)], 2 + K.R() * .5, 'blind', { speed: 20 }); });
+  const w = L[3]; const tw = K.go(w, [282, 76], 5.2, 'blind', { speed: 30 }); K.hold(w, tw, tw + 1.4, 'catch'); K.say(w, 'لمستك!', tw, 1.3);
+  K.steps(0, 1.4, 2, tw);
+};
+// ———————— ٤٢ حسّاس السيارة (البحث عن القلم)
+PL[42] = K => {
+  const s = K.p(212, 200, 'y', { face: 0 }); const T = K.row(5, 120, 70, 44, 'b', { face: 180 }); const pen = K.item('paper', 320, 150, { hide: t => t < 2.6 });
+  let t = K.go(s, [400, 230], .5, 'walk', { speed: 70 }); K.go(T[4], [318, 140], .9, 'walk', { speed: 60 }); K.hold(T[4], 2.4, 3, 'crouch'); K.go(T[4], [296, 70], 3, 'walk', { speed: 60 });
+  const t3 = 3.6; t = K.go(s, [[260, 200], [180, 160], [250, 150], [300, 156]], t3, 'walk', { speed: 42 });
+  K.say(T[1], 'بيب.. بيب', 4.2, 1.2); K.say(T[2], 'بيب بيب', 5.6, 1.2); K.say(T[3], 'بيب بيب بيب!', t - .9, 1.4);
+  K.hold(s, t, t + 1.2, 'crouch'); pen.hide = tt => tt < 2.6 || tt > t + .5; K.hold(s, t + 1.2, t + 2.4, 'cheer', { carry: 'paper' });
+  K.steps(0, 1, t3, t - 1);
+};
+// ———————— ٤٣ العميان (نادِ صاحبك)
+PL[43] = K => {
+  const a = K.p(80, 70, 'r', { face: 90 }), b = K.p(340, 180, 'r', { face: -90 }), c = K.p(80, 190, 'b', { face: 90 }), d = K.p(340, 60, 'b', { face: -90 });
+  K.say(a, 'كلمتنا: نخلة', .3, 1.8); K.say(c, 'كلمتنا: قمر', .5, 1.8);
+  [a, b, c, d].forEach(x => x.blind = true);
+  K.say(a, 'نخلة!', 3, 1); K.say(b, 'نخلة!', 3.4, 1); K.say(c, 'قمر!', 3.2, 1); K.say(d, 'قمر!', 3.6, 1);
+  const t1 = K.go(a, [[160, 110], [200, 128]], 3, 'blind', { speed: 30 }); K.go(b, [[270, 150], [222, 130]], 3, 'blind', { speed: 30 });
+  K.go(c, [[150, 160], [190, 140]], 3.2, 'blind', { speed: 24 }); K.go(d, [[290, 90], [250, 110]], 3.2, 'blind', { speed: 24 });
+  K.hold(a, t1, t1 + 1.4, 'cheer'); K.hold(b, t1, t1 + 1.4, 'cheer');
+  K.steps(0, 1.9, 3, t1);
+};
+// ———————— ٤٤ الأعمى والبرتقال
+PL[44] = K => {
+  const pile = K.item('orange', 320, 90), pot = K.item('bucket0', 100, 150); const a = K.p(120, 150, 'o', { face: 90 });
+  K.say(a, 'شفت المكان', .3, 1.4); a.blind = true;
+  let t = 1.8; for (let k = 0; k < 2; k++) { t = K.go(a, [[220, 120], [304, 96]], t, 'blind', { speed: 36 }); K.hold(a, t, t + .5, 'crouch'); t = K.go(a, [[220, 128], [118, 148]], t + .5, 'carry', { speed: 40, seg: { carry: 'orange' } }); K.hold(a, t, t + .5, 'crouch'); t += .6; }
+  K.steps(0, 1.8, 3.5, 7);
+};
+// ———————— ٤٥ الإحساس
+PL[45] = K => {
+  K.circM(212, 122, 34); K.circM(212, 122, 96, { dash: 1 });
+  const b = K.p(212, 124, 'y', { face: 180, blind: true }); const L = K.ring(8, 212, 122, 92, 'b');
+  const r1 = L[2]; let t = K.go(r1, [236, 124], 1.6, 'run', { speed: 90 }); K.hold(r1, t, t + .3, 'point'); K.go(r1, K.pos(r1) && r1._base, t + .3, 'run', { speed: 100 });
+  K.hold(b, t + .1, t + .8, 'blind', { dir: [1, 0] });
+  const r2 = L[6]; const t2 = K.go(r2, [192, 126], t + 1, 'run', { speed: 70 }); K.hold(b, t2 - .2, t2 + .6, 'catch', { dir: [-1, 0] }); K.say(b, 'مسكتك!', t2, 1.3); K.hold(r2, t2, t2 + 1, 'freeze');
+  K.steps(0, .6, 1.6, t + .3, t2);
+};
+// ———————— ٤٦ طاط طيط طوط
+PL[46] = K => {
+  const S3 = ['طاط', 'طيط', 'طوط'], T = ['r', 'b', 'g']; const L = K.spread(9, i => T[i % 3], [50, 50, 370, 210]);
+  L.forEach((a, i) => K.say(a, S3[i % 3], .3 + (i % 3) * .2, 1.6));
+  L.forEach(a => a.blind = true);
+  const C0 = [[110, 90], [300, 90], [210, 180]];
+  L.forEach((a, i) => { const g = i % 3, c = C0[g], k = Math.floor(i / 3), to = [c[0] + (k - 1) * 22, c[1] + (k % 2) * 8]; const t1 = K.go(a, to, 2.6 + K.R() * .4, 'blind', { speed: 30 }); K.hold(a, t1 + .2, 900, 'sit'); K.say(a, S3[g] + '!', 2.8 + K.R() * 1.5, .9); });
+  K.steps(0, 1.6, 2.6, 6.5);
+};
+// ———————— ٤٨ سبعة ثمانية تسعة
+PL[48] = K => {
+  const lead = K.lead(212, 36, { face: 180 }); K.say(lead, '٧ يدين فوق · ٨ رجول مفتوحة · ٩ تحية', .3, 2.6);
+  const A = K.row(3, 80, 140, 34, 'r', { face: 180 }), B = K.row(3, 276, 140, 34, 'b', { face: 180 });
+  K.say(lead, 'سبعمية وتسعة وثمانين!', 3.2, 2);
+  const P789 = ['cheer', 'point', 'freeze'];
+  [A, B].forEach((T, k) => { const order = [0, 2, 1]; T.forEach((a, i) => K.hold(a, 4.3 + k * .3 + i * .1, 7.5, P789[order[i]])); });
+  K.steps(0, 1.6, 3.2, 4.4);
+};
+// ———————— ٥٠ الكلمة البشرية (ترتيب الحروف)
+PL[50] = K => {
+  const W1 = ['د', 'و', 'ل', 'ا', 'ب'], W2 = ['ب', 'ن', 'د', 'و', 'ل'], mix = [3, 0, 4, 1, 2];
+  const slot = i => [320 - i * 42, 130];
+  const L = mix.map((li, j) => { const a = K.p(slot(j)[0], 130, 'r', { face: 180 }); a.carry = 'card'; a.carryText = W1[li]; a._li = li; return a; });
+  K.say([212, 60], 'اخلطها: كل واحد حرف', .3, 1.8);
+  const t2 = 2.4; L.forEach((a, j) => { const to = slot(a._li); if (Math.abs(to[0] - K.pos(a)[0]) < 2) return; const zz = 130 + (j % 2 ? 26 : -26); K.go(a, [[K.pos(a)[0], zz], [to[0], zz], to], t2, 'walk', { speed: 70, seg: { carry: 'card' } }); });
+  const t3 = 5.2; K.all(L, t3, t3 + 1.3, 'cheer', { carry: 'card' }); K.say([212, 60], 'دولاب ✓', t3, 1.6);
+  const t4 = 7; K.say([212, 60], 'الحين: بندول', t4, 1.8);
+  K.steps(0, t2, t3, t4);
+};
+// ———————— ٥٢ الذاكرة (شوف واركض واكتب)
+PL[52] = K => {
+  const tb = K.item('table', 120, 110); ['ball', 'cup', 'book', 'whistle'].forEach((k, i) => K.item(k, 104 + i * 11, 104, { hide: t => t > 3.2 && t < 7.9 }));
+  const cover = K.item('blanket', 120, 106, { hide: t => t < 3.2 || t > 7.9 });
+  const L = K.row(4, 100, 160, 22, 'g', { face: 0 }); K.item('paper', 330, 150);
+  K.say([120, 70], 'دقيقة تطالعون بس', .4, 2);
+  const t2 = 3.2; K.say([120, 70], 'غطّيتها!', t2, 1.2);
+  const t3 = 4.4; L.forEach((a, i) => { const t1 = K.go(a, [314 + (i % 2) * 34, 132 + (i > 1 ? 30 : 0)], t3 + i * .1, 'run', { speed: 110 }); K.hold(a, t1, 7.8, 'sit'); });
+  K.steps(0, t2, t3);
+};
+// ———————— ٥٣ دقة الملاحظة
+PL[53] = K => {
+  const T = K.row(3, 250, 90, 36, 'b', { face: 180 }); T[1].carry = 'cap'; const s = K.p(270, 190, 'y', { face: 0 }); const lead = K.lead(380, 170, { face: -90 });
+  K.say(s, 'عشر ثواني أطالع…', .4, 2.4);
+  const t2 = 3; K.hold(s, t2, 900, 'stand', { face: 180 });
+  const t3 = 4; K.say(lead, 'مين لابس طاقية؟', t3, 1.8);
+  const t4 = 6; K.say(s, 'اللي في الوسط!', t4, 1.6); K.hold(lead, t4 + .5, t4 + 1.8, 'clap');
+  K.steps(0, t2, t3, t4);
+};
+})();
+
+</script>
+<script>/* plays2 */
+// مشاهد مكتوبة يدوياً حسب خطوات كل لعبة (الجزء ٢)
+(function () {
+'use strict';
+const PL = SCENE.PLAYS;
+const PH = 56;
+const drops = (K, from, to, t, dur = .45) => K.ball(from, to, t, dur, { kind: 'drops', h: 10, y0: SCENE.kit ? 30 : 30, y1: 26 });
+
+// ———————— ٥٤ المفقودات
+PL[54] = K => {
+  const lead = K.lead(212, 40); K.item('bush', 90, 70); K.item('box', 330, 170); const hid = K.item('cpaper', 334, 176, { hide: t => t > 6.2 });
+  K.say([212, 30], 'خبّيت الأغراض', .3, 1.4);
+  const L = K.row(4, 160, 200, 30, 'g', { face: 0 }); K.say(lead, 'أحمر، تكتب فيه، تحت شي أخضر', 2, 2.4);
+  const t3 = 4.4; K.go(L[0], [[90, 160], [96, 86]], t3, 'run', { speed: 90 }); K.go(L[1], [[250, 120], [200, 100]], t3, 'run', { speed: 80 });
+  const t1 = K.go(L[3], [[300, 200], [322, 176]], t3, 'run', { speed: 80 }); K.hold(L[3], t1, t1 + .6, 'crouch');
+  const t2 = K.go(L[3], [222, 56], t1 + .6, 'run', { speed: 100, seg: { carry: 'cpaper' } }); K.hold(L[3], t2, t2 + 1, 'cheer', { carry: 'cpaper' });
+  K.steps(0, 2, t3, t2);
+};
+// ———————— ٥٨ بالونات الماء بالأسئلة
+PL[58] = K => {
+  const lead = K.lead(212, 36); const R = K.col(4, 80, 70, 40, 'r', { face: 90 }), B = K.col(4, 344, 70, 40, 'b', { face: -90, pose: 'sit' }); K.item('bucket', 120, 200);
+  K.say(lead, 'عاصمة مصر؟', 1, 1.8); K.say(R[1], 'القاهرة!', 2.6, 1.3); K.hold(lead, 3.6, 4.4, 'clap');
+  const t3 = 4.4; let t = K.go(R[1], [116, 192], t3, 'run', { speed: 100 }); K.hold(R[1], t, t + .3, 'crouch'); t = K.go(R[1], [140, 110], t + .3, 'run', { speed: 100, seg: { carry: 'balloon' } });
+  K.toss(R[1], B[1], t + .2, { kind: 'balloon', h: 30 }); K.say(B[1], 'بلّلني!', t + 1, 1.2);
+  K.steps(0, 1, t3, t + .2);
+};
+// ———————— ٥٩ رشاشات الماء
+PL[59] = K => {
+  const R = K.spread(4, 'r', [60, 50, 180, 210], { face: 90 }), B = K.spread(4, 'b', [244, 50, 364, 210], { face: -90 });
+  [...R, ...B].forEach(a => a.carry = 'spray'); K.say([212, 30], 'ورقتك خلف راسك', .3, 1.6);
+  K.go(R[0], [190, 90], 2, 'run', { speed: 80 }); K.go(B[1], [234, 110], 2, 'run', { speed: 80 });
+  K.hold(R[0], 3, 3.6, 'throw', { dir: [1, 0] }); drops(K, [194, 90], [232, 108], 3.1);
+  K.hold(B[2], 4, 4.6, 'throw', { dir: [-1, 0] }); drops(K, K.pos(B[2]), K.pos(R[2]), 4.1, .6);
+  K.say(R[2], 'تبللت ورقتي', 4.8, 1.3); K.out(R[2], 5.4);
+  K.steps(0, 2, 4.8);
+};
+// ———————— ٦١ عصا القوة
+PL[61] = K => {
+  K.circM(212, 122, 64); const a = K.p(188, 122, 'r', { face: 90 }), b = K.p(236, 122, 'b', { face: -90 }); b.flip = 0;
+  K.S.fx.push({ kind: 'stickfx', a: a.id, b: b.id });
+  K.say([212, 50], 'كل واحد ماسك طرف', .4, 1.6);
+  K.all([a, b], 2, 3.6, 'pull'); K.go(a, [[196, 122], [184, 122], [200, 122]], 2, 'walk', { speed: 18 }); K.go(b, [[244, 122], [232, 122], [248, 122]], 2, 'walk', { speed: 18 });
+  const t3 = 4; const t1 = K.go(b, [286, 120], t3, 'walk', { speed: 34 }); K.go(a, [238, 122], t3, 'walk', { speed: 34 }); K.say([290, 96], 'طلع!', t1, 1.2); K.hold(a, t1, t1 + 1.2, 'cheer');
+  K.steps(0, 2, t3);
+};
+// ———————— ٦٢ الدفع باليد
+PL[62] = K => {
+  const a = K.p(196, 122, 'r', { face: 90, pose: 'crouch' }), b = K.p(228, 122, 'b', { face: -90, pose: 'crouch' });
+  K.say([212, 60], 'قرفصاء، وبينكم ذراع', .3, 1.7);
+  K.all([a, b], 2, 3, 'catch');
+  K.hold(a, 3, 3.5, 'catch'); K.hold(b, 3.1, 3.6, 'catch'); K.hold(a, 3.6, 4.1, 'crouch'); K.hold(b, 3.7, 4.2, 'catch');
+  const t4 = 4.6; K.hold(b, t4, t4 + 1.6, 'sit'); K.say(b, 'طحت!', t4, 1.2); K.hold(a, t4 + .2, t4 + 1.6, 'cheer');
+  K.steps(0, 2, 3, t4);
+};
+// ———————— ٦٣ المثلث المختار
+PL[63] = K => {
+  K.paint('<path d="M212 92 L242 140 L182 140 Z" fill="none" stroke="#8a5a2b" stroke-width="6" stroke-linejoin="round"/>');
+  const L = [[212, 92, 0], [244, 142, 120], [180, 142, 240]].map(([x, z, ang], i) => K.p(x, z, ['r', 'b', 'g'][i], { face: ang }));
+  const bt = [[212, 30], [300, 190], [124, 190]].map(([x, z]) => K.item('bottle', x, z));
+  K.say([212, 40], 'كل واحد ماسك الحبل', .3, 1.6);
+  K.all(L, 2, 4.6, 'pull'); K.go(L[1], [[258, 156], [250, 150]], 2.2, 'walk', { speed: 14 }); K.go(L[2], [[170, 150], [178, 146]], 2.2, 'walk', { speed: 12 });
+  const t3 = 2.6, t4 = 4.6; const t1 = K.go(L[0], [212, 46], t4, 'walk', { speed: 30 }); K.hold(L[0], t1, t1 + .8, 'crouch'); K.say(L[0], 'لمستها!', t1, 1.2);
+  K.steps(0, 1, t3, t4);
+};
+// ———————— ٦٤ الطواقي
+PL[64] = K => {
+  K.circM(90, 120, 40, { c: '#ff6b6b' }); K.circM(334, 120, 40, { c: '#5aa9ff' });
+  const R = [[70, 80], [110, 160], [150, 70]].map(p => K.p(p[0], p[1], 'r', { face: 90 })), B = [[354, 80], [314, 160], [280, 170]].map(p => K.p(p[0], p[1], 'b', { face: -90 }));
+  [...R, ...B].forEach(a => a.carry = 'cap'); const ref = K.lead(212, 36);
+  const t2 = 1.5; let t = K.go(R[2], [262, 160], t2, 'run', { speed: 120 }); K.hold(R[2], t, t + .4, 'point'); B[2].tl.push({ k: 'hold', t0: t + .3, t1: 900, x: 280, z: 170, pose: 'stand', carry: null });
+  const t3 = t + .6; K.go(R[2], [150, 74], t3, 'run', { speed: 110, seg: { carry: 'cap' } }); const tb = K.go(B[2], [[200, 150], [96, 132]], t3, 'walk', { speed: 70, seg: { carry: null } }); K.hold(B[2], tb, 900, 'sit', { carry: null }); K.say(B[2], 'انحبست', tb, 1.3);
+  const t4 = tb + .5; K.say(ref, 'كرة!', t4, 1.2); K.toss(ref, R[0], t4 + .4, { h: 30 });
+  const t5 = t4 + 2.2; K.say(B[0], 'رجعت طاقية = أفك واحد', t5, 2);
+  K.steps(0, t2, t3, t4, t5);
+};
+// ———————— ٦٥ الجندي والسارق
+PL[65] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); K.label(70, 34, 'البيت'); const ball = K.item('ball', 212, 124);
+  const th = K.p(150, 124, 'r', { face: 90 }), so = K.p(276, 124, 'b', { face: -90 });
+  [[1, 'crouch'], [2.4, 'stand'], [3.4, 'crouch']].forEach(([t, p]) => { K.hold(th, t, t + 1, p); K.hold(so, t + .25, t + 1.1, p); });
+  K.go(th, [176, 124], 1.2, 'walk', { speed: 20 });
+  const t3 = 4.8; let t = K.go(th, [200, 124], t3, 'run', { speed: 100 }); ball.hide = tt => tt > t; t = K.go(th, [76, 130], t, 'run', { speed: 120, seg: { carry: 'ball' } });
+  const tc = K.go(so, [[230, 126], [96, 132]], t3 + .3, 'run', { speed: 118 }); K.hold(th, t, t + 1.2, 'cheer', { carry: 'ball' }); K.say(th, 'وصلت!', t, 1.3);
+  K.steps(0, 2.4, t3, t3 + .4);
+};
+// ———————— ٦٦ حماية الهرم
+PL[66] = K => {
+  K.circM(212, 122, 46); K.item('pyr', 212, 118); const g = K.p(236, 128, 'y', { face: -90 });
+  const L = K.ring(7, 212, 122, 100, 'b');
+  let t = 1.4; [[L[1], 'catch'], [L[4], 'kick'], [L[6], 'catch']].forEach(([a, gp], k) => { K.toss(a, [216, 120], t, { h: 14, y1: 20 }); K.go(g, [212 + (K.pos(a)[0] - 212) * .25, 122 + (K.pos(a)[1] - 122) * .25], t, 'run', { speed: 120 }); K.hold(g, t + .4, t + .9, gp); t += 1.5; });
+  K.say(g, 'صدّيتها!', 3, 1.2); K.steps(0, 1.2, 1.4, 3);
+};
+// ———————— ٦٧ بناء الهرم
+PL[67] = K => {
+  const L = K.row(5, 80, 124, 60, 'g', { face: 90 }); const pile = K.item('can', 60, 150); const pyr = K.item('pyr', 360, 140, { hide: t => t < 6 });
+  let t = 1; for (let k = 0; k < 4; k++) { K.toss(L[k], L[k + 1], t, { kind: 'can', h: 22 }); t += .8; }
+  const t4 = t; K.hold(L[4], t, t + 1.6, 'crouch'); K.say(L[4], 'أبني الهرم', t, 1.4);
+  K.steps(0, 1, 2, t4);
+};
+// ———————— ٦٨ دحرجة الكرة
+PL[68] = K => {
+  K.lineM(70, 30, 70, 226, { w: 5 }); K.lineM(354, 30, 354, 226, { w: 5 });
+  const R = K.col(4, 54, 60, 46, 'r', { face: 90 }), B = K.col(4, 370, 60, 46, 'b', { face: -90 });
+  K.S.fx.push({ kind: 'ball', scale: 2.4, tl: [{ t0: 0, t1: 2.4, from: [212, 128], to: [212, 128], y0: 0, y1: 0 }, { t0: 2.4, t1: 4.6, from: [212, 128], to: [268, 128], y0: 0, y1: 0, h: 0 }, { t0: 4.6, t1: 6.4, from: [268, 128], to: [236, 128], y0: 0, y1: 0, h: 0 }, { t0: 6.4, t1: 9, from: [236, 128], to: [236, 128], y0: 0, y1: 0 }] });
+  [0, 1, 2, 3].forEach(i => { K.toss(R[i], [200, 128], 1.2 + i * .5, { kind: 'balls', h: 16, y1: 10, track: 'tb' + i, hideIdle: 1 }); });
+  [1, 2].forEach(i => K.toss(B[i], [226, 128], 4.4 + i * .5, { kind: 'balls', h: 16, y1: 10, track: 'tc' + i, hideIdle: 1 }));
+  K.steps(0, 1.2, 4.4, 6);
+};
+// ———————— ٦٩ دوائر الحجارة
+PL[69] = K => {
+  [130, 190, 250, 310].forEach(x => K.circM(x, 124, 16)); K.lineM(350, 50, 350, 200, { w: 4 }); K.lineM(80, 50, 80, 200, { w: 5 });
+  const L = K.col(4, 56, 70, 36, 'r', { face: 90 }).map((a, i) => (a.n = i + 1, a));
+  const st = [130, 190, 250, 310].map(x => K.item('stone', x, 124, { hide: t => t < 2.4 }));
+  const t2 = 1; [L[0], L[2]].forEach((a, k) => { const t = K.go(a, [[130, 112 + k * 20], [370, 110 + k * 24]], t2 + k * .4, 'run', { speed: 90, seg: { carry: 'stone' } }); });
+  const t4 = 5; [L[1], L[3]].forEach((a, k) => { K.go(a, [[160, 116 + k * 16], [370, 150 + k * 24]], t4 + k * .4, 'run', { speed: 90 }); });
+  st.forEach((s, i) => s.hide = t => t < 1.6 + i * .5 || t > 5.4 + i * .45);
+  K.steps(0, t2, 3.6, t4, 8);
+};
+// ———————— ٧٠ التصويب على السلة
+PL[70] = K => {
+  const bk = K.item('basket', 330, 124); K.lineM(200, 60, 200, 190, { w: 4 }); K.measure(206, 200, 326, 200, '٣ أمتار');
+  const a = K.p(186, 124, 'o', { face: 90 });
+  K.toss(a, [330, 122], 1.2, { h: 40, y1: 14 }); K.say([330, 100], 'دخلت!', 2, 1);
+  const t3 = 3.2; a.tl.push({ k: 'hold', t0: t3, t1: t3 + .3, x: 186, z: 124, pose: 'stand', face: 90 }); K.say(a, 'أغمّض…', t3, 1.2);
+  K.hold(a, t3 + .3, t3 + .9, 'throw', { dir: [1, 0] }); K.ball([186, 124], [318, 140], t3 + .6, .8, { h: 40, y1: 2 });
+  const t4 = 5.6; K.hold(a, t4, t4 + .8, 'stand', { face: -90 }); K.hold(a, t4 + .8, t4 + 1.4, 'throw', { dir: [-1, 0] }); K.ball([186, 124], [330, 122], t4 + 1.1, .9, { h: 60, y0: PH * .95, y1: 14 }); K.say([330, 100], 'من ورا!', t4 + 2, 1.1);
+  K.steps(0, 1, t3, t4);
+};
+// ———————— ٧١ صيد الحلقات (المبارزة)
+PL[71] = K => {
+  const a = K.p(110, 124, 'r', { face: 90 }); a.carry = 'stick'; const L = K.col(3, 320, 84, 40, 'r', { face: -90 }); K.measure(116, 200, 316, 200, '٥ أمتار');
+  let t = 1.4; L.forEach((b, i) => { K.toss(b, [140, 120], t, { kind: 'hoop', h: 30, y1: PH * .55, track: 'h' + i, hideIdle: 1 }); K.hold(a, t + .5, t + .9, 'point', { dir: [1, 0] }); t += 1.4; });
+  K.say(a, 'صدتها!', 2.3, 1); K.steps(0, 1.4, 2.4);
+};
+// ———————— ٧٢ صائد الكرة (الشبكة)
+PL[72] = K => {
+  const c = K.p(320, 124, 'y', { face: -90 }); c.carry = 'bucket0'; const L = K.col(3, 90, 84, 40, 'b', { face: 90 }); K.measure(96, 210, 316, 210, '٦–٨ أمتار');
+  let t = 1.2; L.forEach((b, i) => { const to = [312, 100 + i * 24]; K.toss(b, to, t, { h: 40, y1: PH * .55 }); K.go(c, to, t, 'run', { speed: 100, seg: { carry: 'bucket0' } }); t += 1.5; });
+  K.steps(0, 1.2, 2.7);
+};
+// ———————— ٧٣ الكرة الملكة
+PL[73] = K => {
+  K.item('ball', 212, 130, { scale: 2 }); const a = K.p(204, 128, 'o', { face: 90 }), h = K.p(236, 132, 'b', { face: -90 }); const lead = K.lead(330, 70, { face: -90 });
+  K.hold(a, .5, 2, 'hop'); K.hold(h, .5, 3.2, 'catch'); K.say(h, 'ماسكك', .6, 1.2);
+  K.hold(a, 2, 6.5, 'catch', { lift: 16 });
+  const t3 = 3.2; K.go(h, [262, 140], t3, 'walk', { speed: 40 }); K.hold(lead, t3, 6.5, 'watch'); K.say(lead, '١.. ٢.. ٣..', t3 + .5, 2.4);
+  K.steps(0, 2, t3, 5);
+};
+// ———————— ٧٤ أين حذائي
+PL[74] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); const pile = K.item('shirts', 320, 124, { scale: 1.6 }); K.measure(76, 214, 312, 214, '١٠ أمتار');
+  const L = K.col(4, 56, 70, 36, 'b', { face: 90 });
+  L.forEach((a, i) => { let t = K.go(a, [304 - (i % 2) * 6, 112 + i * 8], 1.2 + i * .15, 'run', { speed: 110 }); K.hold(a, t, t + 1 + i * .3, 'crouch'); t = K.go(a, [56, 70 + i * 36], t + 1 + i * .3, 'run', { speed: 110 }); K.hold(a, t, t + 1, 'cheer'); });
+  K.steps(0, 1.2, 3);
+};
+// ———————— ٧٥ أسرع من يلبس
+PL[75] = K => {
+  const lead = K.lead(380, 40); [100, 212, 324].forEach((x, i) => { K.item('shirts', x, 150); const a = K.p(x, 120, ['r', 'b', 'g'][i], { face: 180 });
+    for (let k = 0; k < 3; k++) { K.hold(a, 1.4 + k * 1.2 + i * .1, 1.9 + k * 1.2 + i * .1, 'crouch'); K.hold(a, 1.9 + k * 1.2 + i * .1, 2.6 + k * 1.2 + i * .1, 'cheer'); } });
+  K.say(lead, 'دقيقة وحدة!', 1.2, 1.4); K.hold(lead, 1.2, 6, 'watch');
+  K.steps(0, 1.2, 4);
+};
+// ———————— ٧٦ بساط الريح
+PL[76] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); K.lineM(352, 40, 352, 210, { dash: 1, c: '#241a52' });
+  const rider = K.p(104, 124, 'y', { face: 90, pose: 'sit' }); const bl = K.S.fx.push({ kind: 'blanket', scale: 1.8, tl: [{ t0: 0, t1: 1.4, from: [104, 128], to: [104, 128], y0: 0, y1: 0 }, { t0: 1.4, t1: 5.4, from: [104, 128], to: [300, 128], y0: 0, y1: 0, h: 0 }, { t0: 5.4, t1: 12, from: [300, 128], to: [300, 128], y0: 0, y1: 0 }] });
+  const P = [K.p(150, 110, 'y', { face: -90 }), K.p(150, 140, 'y', { face: -90 })];
+  K.go(rider, [300, 124], 1.4, 'sit', { speed: 49 }); P.forEach((a, i) => { K.go(a, [346, 110 + i * 30], 1.4, 'pull', { speed: 49 }); });
+  const t3 = 6; K.go(rider, [330, 160], t3, 'walk', { speed: 50 }); K.go(P[0], [300, 124], t3, 'walk', { speed: 50 }); K.hold(P[0], t3 + 1, 8, 'sit');
+  K.steps(0, 1.4, t3, 7.5);
+};
+// ———————— ٧٨ التقاط الورقة (خمسين ريال)
+PL[78] = K => {
+  const paper = K.item('cpaper', 226, 128); const a = K.p(196, 128, 'o', { face: 90 });
+  K.say([212, 60], 'الورقة قدامه', .3, 1.4); K.hold(a, 1.6, 3, 'hop'); K.say(a, 'يديني ورا', 1.6, 1.2);
+  K.hold(a, 3, 4.6, 'crouch'); paper.hide = t => t > 4.2; K.hold(a, 4.6, 6, 'cheer', { carry: 'cpaper' }); K.say(a, 'أخذتها!', 4.6, 1.2);
+  K.steps(0, 1.6, 3, 4.6);
+};
+// ———————— ٧٩ الصافرة المعلقة
+PL[79] = K => {
+  const L = [110, 212, 314].map((x, i) => { K.S.fx.push({ kind: 'whistle', tl: [{ t0: 0, t1: 99, from: [x, 124], to: [x, 124], y0: PH * 1.05, y1: PH * 1.05 }] }); return K.p(x, 128, ['r', 'b', 'g'][i], { face: 180 }); });
+  K.say([212, 40], 'الصافرة معلقة بخيط', .3, 1.6);
+  L.forEach((a, i) => { for (let k = 0; k < 4; k++) K.hold(a, 1.8 + k * .8 + i * .15, 2.4 + k * .8 + i * .15, 'jump', { jump: 1, jh: 1.1 }); });
+  const t4 = 5.4; K.say(L[1], 'صفّرت!', t4, 1.3); K.hold(L[1], t4, t4 + 1.3, 'cheer');
+  K.steps(0, 1.8, 3, t4);
+};
+// ———————— ٨٠ ملاقط الغسيل
+PL[80] = K => {
+  [[120, 'r', 'b'], [300, 'g', 'y']].forEach(([x, t1, t2]) => { const a = K.p(x - 18, 124, t1, { face: 90 }), b = K.p(x + 18, 124, t2, { face: -90 }); a.carry = b.carry = 'pegs';
+    for (let k = 0; k < 4; k++) { K.hold(a, 1.4 + k * 1.1, 1.9 + k * 1.1, 'point', { carry: 'pegs' }); K.hold(b, 1.9 + k * 1.1, 2.4 + k * 1.1, 'point', { carry: 'pegs' }); } });
+  K.say([212, 40], 'دقيقة وحدة', 1, 1.4); K.steps(0, .6, 1.4, 4);
+};
+// ———————— ٨١ الركض بالعصا
+PL[81] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); const cone = K.item('cone', 340, 124);
+  const L = [100, 124, 148, 172].map(z => K.p(80, z - 12, 'b', { face: 90 })); K.S.fx.push({ kind: 'stickfx', a: L[0].id, b: L[3].id });
+  const path = [[316, 88], [356, 88], [364, 124], [356, 160], [316, 160], [90, 124]];
+  L.forEach((a, i) => { const off = (i - 1.5) * 24; K.go(a, [[300, 112 + off * .6], [340, 76 + i * 10 - 10], [372, 124 + off * .3], [340, 172 - (3 - i) * 10], [84, 112 + off * .6]], 1.2, 'run', { speed: 80 }); });
+  K.steps(0, 1.2, 3.6, 7);
+};
+// ———————— ٨٣ كرة القدم بالصابون
+PL[83] = K => {
+  K.rectM(90, 40, 244, 170, { fill: '#bae6fd', fo: .55, c: '#7dd3fc' }); K.item('slide', 70, 220, { scale: .8 }); K.item('goal', 96, 124, { scale: .8 }); K.item('goal', 330, 124, { scale: .8 });
+  const R = K.spread(3, 'r', [130, 60, 200, 190], { face: 90 }), B = K.spread(3, 'b', [230, 60, 300, 190], { face: -90 });
+  K.say([212, 30], 'رش الصابون والماء', .3, 1.6);
+  const t4 = 2.2; K.S.fx.push({ kind: 'ball', tl: [{ t0: t4, t1: t4 + 1.4, from: [212, 124], to: [250, 90], h: 4, y0: 3, y1: 3 }, { t0: t4 + 1.4, t1: t4 + 3, from: [250, 90], to: [170, 150], h: 4, y0: 3, y1: 3 }, { t0: t4 + 3, t1: t4 + 4.2, from: [170, 150], to: [212, 124], h: 4, y0: 3, y1: 3 }] });
+  K.go(R[0], [[240, 96], [190, 140]], t4, 'run', { speed: 60 }); K.go(B[0], [[244, 100], [176, 146]], t4 + .2, 'run', { speed: 60 }); K.hold(B[0], t4 + 3, t4 + 4, 'sit'); K.say(B[0], 'زلقت!', t4 + 3, 1.1);
+  K.steps(0, .3, 1.6, t4);
+};
+// ———————— ٨٤ جمع الحطب
+PL[84] = K => {
+  const sticks = [[150, 70], [260, 60], [200, 180], [300, 170], [130, 150], [240, 120]].map(([x, z]) => K.item('stick', x, z));
+  K.circM(60, 124, 26, { c: '#ff6b6b', dash: 1 }); K.circM(364, 124, 26, { c: '#5aa9ff', dash: 1 });
+  const R = K.col(2, 70, 100, 50, 'r', { face: 90 }), B = K.col(2, 354, 100, 50, 'b', { face: -90 });
+  [[R[0], 0, 60], [R[1], 4, 60], [B[0], 1, 364], [B[1], 3, 364]].forEach(([a, si, hx], k) => { const s = sticks[si]; let t = K.go(a, [s.x, s.z], 1.2 + k * .2, 'run', { speed: 100 }); s.hide = tt => tt > t; K.hold(a, t, t + .4, 'crouch'); t = K.go(a, [hx, 124 + (k % 2 ? 14 : -14)], t + .4, 'carry', { speed: 80, seg: { carry: 'stick' } }); K.hold(a, t, t + .4, 'crouch'); });
+  K.item('stick', 60, 124, { hide: t => t < 4.6 }); K.item('stick', 364, 124, { hide: t => t < 4.4 });
+  K.steps(0, 1.2, 3, 6);
+};
+// ———————— ٨٥ المنظار
+PL[85] = K => {
+  const a = K.p(80, 140, 'o', { face: 90 }); a.carry = 'bino'; K.item('flag', 340, 110, { team: 'r' });
+  K.say(a, 'المنظار مقلوب!', .3, 1.4);
+  K.go(a, [[160, 120], [210, 160], [270, 120], [324, 116]], 1.6, 'walk', { speed: 34, seg: { carry: 'bino' } });
+  K.steps(0, 1.6, 4);
+};
+// ———————— ٨٦ نفخ البالون
+PL[86] = K => {
+  const lead = K.lead(380, 40); const L = [120, 212, 304].map((x, i) => { const a = K.p(x, 128, ['r', 'b', 'g'][i], { face: 180 }); a.carry = 'balloon'; return a; });
+  K.say([212, 50], 'يديه خلف ظهره', .3, 1.4);
+  L.forEach((a, i) => { for (let k = 0; k < 6; k++) K.hold(a, 1.6 + k * .7, 2.3 + k * .7, 'stand', { carry: 'balloon', cs: .5 + k * .18 * (1 + i * .15) }); });
+  const t3 = 3.4; K.say(L[0], 'فلت!', t3 + 1, 1); L[0].tl.push({ k: 'hold', t0: t3 + 1, t1: 900, x: 120, z: 128, pose: 'freeze', carry: null });
+  const t4 = 5.6; K.say(L[2], 'طاخ!', t4, 1.2); L[2].tl.push({ k: 'hold', t0: t4, t1: 900, x: 304, z: 128, pose: 'cheer', carry: null });
+  K.steps(0, 1.6, t3 + 1, t4);
+};
+// ———————— ٨٧ لا تضحك
+PL[87] = K => {
+  const a = K.p(190, 124, 'r', { face: 90, pose: 'sit' }), b = K.p(234, 124, 'b', { face: -90, pose: 'sit' });
+  K.say([212, 60], '٣٠ ثانية', .3, 1.2);
+  K.say(a, 'ههههه 🤪', 1.4, 1.3); K.hold(a, 1.4, 2.6, 'point'); K.say(a, 'بوووو!', 3, 1.3); K.hold(a, 3, 4.2, 'cheer');
+  K.say(b, '…', 1.6, 2.4); const t4 = 5; K.say(b, 'هههه', 4.4, 1.2);
+  K.say(b, 'دوري!', t4 + .6, 1.3); K.hold(b, t4 + 1, t4 + 2.2, 'point');
+  K.steps(0, 1.4, 1.8, t4 + .6);
+};
+// ———————— ٨٨ أطول نفس
+PL[88] = K => {
+  const a = K.p(196, 124, 'o', { face: 90 }); const lead = K.lead(270, 110, { face: -90 });
+  K.say(a, '(ياخذ نفس)', .3, 1.2); K.hold(a, .3, 1.5, 'cheer');
+  const t2 = 1.6; ['رمضا', 'رمضاااا', 'رمضاااااااا', 'رمضاااااااااااان'].forEach((w, i) => K.say(a, w, t2 + i * .9, .95));
+  K.hold(lead, t2, 6, 'watch'); const t3 = 2.2; K.say(lead, '١٢ ثانية!', 5.6, 1.4);
+  K.steps(0, t2, t3, 5.6);
+};
+// ———————— ٨٩ غطاء القلم
+PL[89] = K => { const a = K.p(212, 124, 'o', { face: 180, pose: 'sit' }); K.say(a, 'القلم والغطاء', .3, 1.2); K.hold(a, 1.6, 5, 'handup'); K.say(a, 'خلف راسي…', 1.8, 1.6); K.say(a, 'سكّرته!', 4.2, 1.2); K.steps(0, 1.6, 3.2); };
+// ———————— ٩٠ كتابة الاسم بالفم
+PL[90] = K => { K.item('desk', 212, 116); const a = K.p(212, 130, 'o', { face: 0, pose: 'chairsit' }); K.S.yaw0 = 180; K.say(a, 'القلم في فمي', .5, 1.6); K.hold(a, 2, 5, 'chairsit'); K.say(a, 'أكتب: أحمد…', 2.4, 2); K.steps(0, 1.2, 2.4); };
+// ———————— ٩١ الرسم المغمض
+PL[91] = K => {
+  K.item('desk', 212, 116); const a = K.p(212, 130, 'o', { face: 0, pose: 'chairsit' }); K.S.yaw0 = 180; const lead = K.lead(300, 120, { face: -90 });
+  K.say(a, 'أشوف الرسمة…', .3, 1.5); a.tl.push({ k: 'hold', t0: 2, t1: 6.2, x: 212, z: 130, pose: 'chairsit', blind: 1 });
+  K.say(lead, 'ارسم الكفرات', 2.4, 1.4); K.say(lead, 'ارسم الأنوار', 4, 1.4); K.say(a, 'هههه!', 6.4, 1.2);
+  K.steps(0, 2, 2.4, 6.3);
+};
+// ———————— ٩٢ تخمين (نعم ولا)
+PL[92] = K => {
+  const T = K.ring(5, 140, 124, 46, 'b', { pose: 'sit' }); const q = K.p(300, 124, 'r', { face: -90 });
+  K.say(T[0], 'اتفقنا: الجمل', .3, 1.6);
+  [['حيوان؟', 'نعم'], ['يطير؟', 'لا'], ['في الصحراء؟', 'نعم!']].forEach(([a, b], i) => { K.say(q, a, 2 + i * 1.8, 1.2); K.say(T[1 + i], b, 2.8 + i * 1.8, 1); });
+  K.say(q, 'الجمل!', 7.6, 1.4); K.steps(0, 2, 6);
+};
+// ———————— ٩٣ تمثيل المثل
+PL[93] = K => {
+  const T = K.ring(6, 212, 130, 70, 'b', { pose: 'sit' }); const ac = K.p(212, 130, 'r', { face: 180 });
+  K.say(ac, '(المثل سرّاً)', .3, 1.4);
+  ['point', 'freeze', 'jump', 'crouch'].forEach((p, i) => K.hold(ac, 1.6 + i * .9, 2.4 + i * .9, p));
+  K.say(T[2], 'الصبر مفتاح الفرج!', 5.4, 1.8); K.steps(0, 1.6, 5.4);
+};
+// ———————— ٩٤ الخطيب المفوّه
+PL[94] = K => {
+  K.S.yaw0 = 180; const sp = K.p(212, 40, 'o', { face: 180 }); const L = K.row(5, 120, 130, 46, 'b', { face: 0, pose: 'chairsit' });
+  K.say(sp, 'موضوعي: الرياضة', .3, 1.4); K.say(sp, 'الرياضة تقوّي الجسد…', 1.9, 2);
+  const t4 = 4.2; K.say(sp, 'مـ…', t4, .9); K.all(L, t4 + .4, t4 + 1.4, 'chairsit_up'); K.say(L[2], 'قال ميم! −١', t4 + .5, 1.4);
+  K.steps(0, 1.9, 3, t4);
+};
+// ———————— ٩٥ التدرج الصوتي
+PL[95] = K => {
+  const a = K.p(212, 124, 'o', { face: 180 }); K.say(a, 'الكلمة: سيارة', .3, 1.2);
+  ['سيارة', 'سيارة', 'سيارة!', 'سيارة!!', 'سيارة!!!'].forEach((w, i) => K.say(a, w, 1.7 + i * .8, .8));
+  K.hold(a, 4.1, 5.8, 'cheer'); K.steps(0, 1.7, 2.6, 5);
+};
+// ———————— ٩٦ الأرقام الإنجليزية
+PL[96] = K => {
+  const L = K.ring(8, 212, 124, 78, 'b', { pose: 'sit' }); const W = ['واحد', 'two', 'ثلاثة', 'four', 'خمسة', 'six', 'سبعة'];
+  W.forEach((w, i) => K.say(L[i], w, 1 + i * .75, .8)); K.say(L[7], 'ثمانية؟!', 1 + 7 * .75, 1); K.out(L[7], 7.2);
+  K.steps(0, 1, 1.75, 6.25);
+};
+// ———————— ٩٧ سعة المعلومات
+PL[97] = K => {
+  const lead = K.lead(300, 120, { face: -90 }); const a = K.p(190, 124, 'o', { face: 90 });
+  K.say(lead, 'الباء!', .4, 1.2); K.hold(lead, 1.6, 7, 'watch');
+  ['باب', 'بيت', 'بدر', 'بحر', 'برتقال'].forEach((w, i) => K.say(a, w, 1.6 + i * .9, .9));
+  K.steps(0, 1.6, 4);
+};
+// ———————— ٩٨ فك الحبل
+PL[98] = K => {
+  const a = K.p(196, 124, 'r', { face: 90, pose: 'sit' }), b = K.p(228, 124, 'b', { face: -90, pose: 'sit' });
+  K.paint('<path d="M190 116 Q212 92 204 118" fill="none" stroke="#8a5a2b" stroke-width="3"/><path d="M220 116 Q200 140 236 118" fill="none" stroke="#c8955a" stroke-width="3"/>');
+  K.say([212, 60], 'كل واحد مربوط بحبل', .3, 1.6);
+  K.hold(a, 2, 3, 'catch'); K.hold(b, 2.4, 3.4, 'handup'); K.hold(a, 3.4, 4.4, 'crouch');
+  K.say(b, 'من داخل الحلقة!', 4.8, 1.6); K.hold(a, 5.6, 6.8, 'cheer'); K.hold(b, 5.6, 6.8, 'cheer');
+  K.steps(0, 1, 2, 4.8);
+};
+// ———————— ١٠٠ أعمق حفرة
+PL[100] = K => {
+  const spots = [[110, 100, 'r'], [212, 150, 'b'], [314, 100, 'g']];
+  spots.forEach(([x, z, tm], i) => { K.paint(`<ellipse cx="${x}" cy="${z}" rx="18" ry="12" fill="#7c4a1e"/><ellipse cx="${x}" cy="${z + 2}" rx="11" ry="7" fill="#3f2410"/>`); const a = K.p(x - 22, z, tm, { face: 90 }); a.carry = 'shovel';
+    for (let k = 0; k < 4; k++) K.hold(a, 1.4 + k * .8 + i * .1, 1.9 + k * .8 + i * .1, 'crouch', { carry: 'shovel' }); });
+  const lead = K.lead(380, 40); K.say(lead, '١٠ دقايق!', 1.2, 1.4);
+  const t4 = 5.2; K.go(lead, [236, 140], t4, 'walk', { speed: 60 }); K.say(lead, 'أعمق!', t4 + 2, 1.2);
+  K.steps(0, 1.2, 2.4, t4);
+};
+})();
+
+</script>
+<script>/* plays3 */
+// مشاهد مكتوبة يدوياً حسب خطوات كل لعبة (الجزء ٣)
+(function () {
+'use strict';
+const PL = SCENE.PLAYS;
+const PH = 56;
+const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+function wander(K, L, t0, t1, r = 28, pose = 'walk') {
+  L.forEach((a, i) => { const b = K.pos(a).slice(), pts = []; for (let k = 0; k < 3; k++) { const g = K.R() * 6.28; pts.push([cl(b[0] + Math.cos(g) * r, 24, 400), cl(b[1] + Math.sin(g) * r * .8, 24, 224)]); }
+    let len = 0, prev = b; [...pts, b].forEach(q => { len += Math.hypot(q[0] - prev[0], q[1] - prev[1]); prev = q; });
+    K.go(a, [...pts, b], t0 + (i % 3) * .08, pose, { speed: len / Math.max(.5, t1 - t0 - .3) }); });
+  return t1;
+}
+function classFacing(K, n, box = [150, 50, 392, 210], team = 'b') { const lead = K.lead(50, 128, { face: 90 }); const L = K.spread(n, team, box, { face: -90 }); return [lead, L]; }
+
+// ———————— ١٠١ نفخ الشمعة
+PL[101] = K => {
+  const L = K.spread(6, i => ['r', 'b', 'g', 'y', 'p', 'o'][i], [70, 60, 350, 200], { face: 180 }); L.forEach(a => a.carry = 'candle');
+  K.say([212, 34], 'كل واحد شمعته بيده', .3, 1.6); L.forEach(a => a.blind = true);
+  wander(K, L, 2.4, 5, 24, 'blind');
+  K.go(L[0], [K.pos(L[1])[0] - 20, K.pos(L[1])[1]], 5.2, 'blind', { speed: 40 }); K.say(L[0], 'فووو', 5.8, 1); L[1].tl.push({ k: 'hold', t0: 6, t1: 900, x: K.pos(L[1])[0], z: K.pos(L[1])[1], pose: 'freeze', carry: null }); K.say(L[1], 'طفت!', 6.2, 1.1);
+  K.steps(0, 2.2, 2.6, 5.8);
+};
+// ———————— ١٠٣ الأقوى (ظهر لظهر)
+PL[103] = K => {
+  const a = K.p(200, 124, 'r', { face: -90 }), b = K.p(224, 124, 'b', { face: 90 });
+  K.say([212, 60], 'ظهر لظهر، الأذرع مشبوكة', .3, 1.8);
+  K.all([a, b], 2.2, 3.6, 'pull'); K.hold(a, 3.6, 5.4, 'crouch'); K.hold(b, 3.6, 5.4, 'jump', { lift: 14 }); K.say(a, 'رفعته!', 4.2, 1.2);
+  K.steps(0, 2.2);
+};
+// ———————— ١٠٤ المصارعة داخل الماء
+PL[104] = K => {
+  K.ground('water');
+  [[176, 'r'], [248, 'b']].forEach(([x, tm], i) => { const c = K.p(x, 128, tm, { face: i ? -90 : 90 }); const r = K.p(x, 128, tm, { face: i ? -90 : 90 }); r.tl.push({ k: 'hold', t0: 0, t1: 900, x, z: 128, pose: 'catch', lift: 30 }); c.carry = null; });
+  K.say([212, 50], 'الراكب على كتف الحامل', .3, 1.8);
+  const tg = 2.4; K.S.actors.filter((a, i) => i % 2).forEach((a, i) => a.tl.push({ k: 'hold', t0: tg, t1: 4.4, x: a.x + (i ? -10 : 10), z: 128, pose: 'pull', lift: 30 }));
+  K.say([248, 80], 'طاح بالماء!', 4.8, 1.3);
+  K.steps(0, 1.4, tg, 4.8);
+};
+// ———————— ١٠٥ المشي على البرميل
+PL[105] = K => {
+  K.S.fx.push({ kind: 'barrel', tl: [{ t0: 0, t1: 1.6, from: [110, 128], to: [110, 128], y0: 0, y1: 0 }, { t0: 1.6, t1: 6, from: [110, 128], to: [290, 128], y0: 0, y1: 0, h: 0 }, { t0: 6, t1: 20, from: [290, 128], to: [290, 128], y0: 0, y1: 0 }] });
+  const a = K.p(110, 128, 'o', { face: 90 }), h = K.p(110, 160, 'b', { face: 90 });
+  a.tl.push({ k: 'hold', t0: 0, t1: 1.6, x: 110, z: 128, pose: 'catch', lift: 30 }); K.go(a, [290, 128], 1.6, 'walk', { speed: 41, seg: { lift: 30 } }); K.hold(a, 6, 8, 'cheer', { lift: 30 });
+  K.hold(h, .2, 1.6, 'catch'); K.say(h, 'مسنود', .3, 1.2);
+  K.steps(0, 1.6, 3.4);
+};
+// ———————— ١٠٦ الدفع بالعربة
+PL[106] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); K.lineM(352, 40, 352, 210, { dash: 1, c: '#241a52' });
+  [[90, 'r'], [160, 'b']].forEach(([z, tm], i) => { K.S.fx.push({ kind: 'cart', tl: [{ t0: 0, t1: 1.2, from: [100, z], to: [100, z], y0: 0, y1: 0 }, { t0: 1.2, t1: 5.4 + i * .5, from: [100, z], to: [330, z], y0: 0, y1: 0, h: 0 }, { t0: 5.4 + i * .5, t1: 20, from: [330, z], to: [330, z], y0: 0, y1: 0 }] });
+    const r = K.p(100, z, tm, { face: 90, pose: 'sit' }), p = K.p(74, z, tm, { face: 90 }); r.tl.push({ k: 'hold', t0: 0, t1: 1.2, x: 100, z, pose: 'sit', lift: 10 }); K.go(r, [330, z], 1.2, 'sit', { speed: 230 / (4.2 + i * .5), seg: { lift: 10 } }); K.go(p, [304, z], 1.2, 'pull', { speed: 230 / (4.2 + i * .5) }); });
+  K.steps(0, 1.2, 4);
+};
+// ———————— ١٠٧ ابتدع لعبة
+PL[107] = K => {
+  K.S.yaw0 = 180; const G = [[110, 90, 'r'], [300, 90, 'b'], [205, 170, 'g']]; const lead = K.lead(212, 36, { face: 180 });
+  G.forEach(([x, z, tm]) => { K.item('table', x, z); K.row(3, x - 26, z + 22, 26, tm, { face: 0, pose: 'chairsit' }); K.item('paper', x, z - 4); });
+  K.say(lead, '١٠ دقايق لكل فريق', .3, 1.6);
+  const t3 = 3.4; const sp = K.S.actors[2]; K.say(sp, 'لعبتنا اسمها…', t3, 2); K.hold(sp, t3, t3 + 2, 'chairsit_up');
+  K.steps(0, 1.6, t3, 6);
+};
+// ———————— ١٠٩ ثبات!
+PL[109] = K => {
+  const [lead, L] = classFacing(K, 12);
+  K.say(lead, 'مثّلوا: طيارة!', .5, 1.6); K.all(L, 1, 3.6, 'cheer');
+  wander(K, L.slice(0, 6), 1.2, 3.6, 16, 'run');
+  const t3 = 3.8; K.say(lead, 'ثبات!', t3, 1.3); K.all(L, t3 + .3, 7, 'freeze');
+  const t4 = 5.2; K.say(L[3], 'هههه', t4, 1); L[3].tl.push({ k: 'hold', t0: t4 + .2, t1: 900, x: K.pos(L[3])[0], z: K.pos(L[3])[1], pose: 'sit' });
+  K.steps(0, .5, t3, t4);
+};
+// ———————— ١١٠ المرآة
+PL[110] = K => {
+  [[150, 'r', 'b'], [290, 'g', 'y']].forEach(([x, t1, t2]) => { const a = K.p(x - 20, 124, t1, { face: 90 }), b = K.p(x + 20, 124, t2, { face: -90 });
+    ['handup', 'point', 'cheer', 'catch', 'crouch'].forEach((p, k) => { K.hold(a, 1.4 + k * 1, 2.2 + k * 1, p); K.hold(b, 1.45 + k * 1, 2.25 + k * 1, p); }); });
+  K.say([220, 50], 'نفس اللحظة!', 2.4, 1.4); K.say([220, 50], 'تبادلوا', 6.6, 1.3); K.steps(0, 1.4, 2.4, 6.6);
+};
+// ———————— ١١١ واحد واحد
+PL[111] = K => {
+  K.S.yaw0 = 180; const L = []; for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { K.item('desk', 80 + c * 88, 96 + r * 66); L.push(K.p(80 + c * 88, 110 + r * 66, 'b', { face: 0, pose: 'chairsit' })); }
+  K.say([212, 34], 'عيونكم للأرض', .3, 1.4);
+  K.hold(L[2], 1.8, 2.8, 'stand'); K.say(L[2], 'واحد', 1.9, .9);
+  K.hold(L[5], 3.2, 4.2, 'stand'); K.say(L[5], 'اثنين', 3.3, .9);
+  const t4 = 4.8; K.hold(L[0], t4, t4 + 1, 'stand'); K.hold(L[7], t4, t4 + 1, 'stand'); K.say(L[0], 'ثلاثة', t4, .9); K.say(L[7], 'ثلاثة', t4 + .1, .9); K.say([212, 34], 'من جديد!', t4 + 1, 1.2);
+  K.steps(0, 1.8, 3.2, t4, 6.4);
+};
+// ———————— ١١٢ تمرير التصفيقة
+PL[112] = K => {
+  const L = K.ring(10, 212, 124, 80, 'b'); let t = 1; for (let k = 0; k < 6; k++) { K.hold(L[k], t, t + .45, 'cheer'); K.say(L[k], 'تصفيق', t, .45); t += .5; }
+  const t3 = t; K.hold(L[6], t, t + .6, 'cheer'); K.say(L[6], 'تصفيقتين!', t, .8); t += .7; for (let k = 5; k >= 3; k--) { K.hold(L[k], t, t + .45, 'cheer'); t += .5; }
+  const t4 = t + .2; K.hold(L[2], t4, t4 + .8, 'freeze'); K.out(L[2], t4 + .9);
+  K.steps(0, 1, t3, t4);
+};
+// ———————— ١١٣ حرف اسمك
+PL[113] = K => {
+  const [lead, L] = classFacing(K, 10); const M = [1, 4, 7], A = [0, 5, 8];
+  K.say(lead, 'الميم!', .6, 1.3); M.forEach(i => K.hold(L[i], 1, 2.4, 'cheer'));
+  const t2 = 2.8; K.say(lead, 'الألف، لفّوا!', t2, 1.6); A.forEach(i => { for (let k = 0; k < 6; k++) K.hold(L[i], t2 + .4 + k * .18, t2 + .58 + k * .18, 'stand', { dir: [Math.cos(k), Math.sin(k)] }); });
+  const t3 = 5.2; K.hold(L[3], 3.3, 4.4, 'cheer'); K.out(L[3], t3);
+  K.steps(0, .6, t2, t3);
+};
+// ———————— ١١٤ صف الأبطال
+PL[114] = K => {
+  K.S.yaw0 = 180; const lead = K.lead(212, 30, { face: 180 }); const rows = [0, 1, 2].map(r => { const L = []; for (let c = 0; c < 4; c++) { K.item('desk', 90 + c * 80, 86 + r * 52); L.push(K.p(90 + c * 80, 100 + r * 52, ['r', 'b', 'g'][r], { face: 0, pose: 'chairsit' })); } return L; });
+  K.say(lead, 'كم عدد السور؟', 1, 1.6);
+  const t3 = 2.8; rows[1].forEach((a, i) => K.hold(a, t3 + i * .08, 6, 'stand')); rows[0].forEach((a, i) => K.hold(a, t3 + .5 + i * .1, 6, i < 2 ? 'stand' : 'chairsit'));
+  const t4 = 4.2; K.say(rows[1][1], '١١٤!', t4, 1.2); K.hold(lead, t4 + .6, t4 + 1.6, 'clap');
+  K.steps(0, .6, t3, t4);
+};
+// ———————— ١١٥ وش اللي تغيّر؟
+PL[115] = K => {
+  const s = K.p(212, 200, 'y', { face: 0 }); const L = K.row(5, 120, 90, 44, 'b', { face: 180 }); const bag = K.item('bag', 140, 130);
+  let t = K.go(s, [404, 236], .6, 'walk', { speed: 70 });
+  const t2 = 1.8; const p0 = K.pos(L[0]).slice(), p4 = K.pos(L[4]).slice(); K.go(L[0], [[164, 64], p4], t2, 'walk', { speed: 60 }); K.go(L[4], [[260, 116], p0], t2, 'walk', { speed: 60 }); bag.hide = tt => tt > t2 + .5; K.item('bag', 300, 130, { hide: tt => tt < t2 + .5 });
+  const t3 = 5; K.go(s, [212, 180], t3, 'walk', { speed: 70 }); K.hold(s, t3 + 2.6, t3 + 4, 'point', { dir: [0, -1] }); K.say(s, 'الشنطة انتقلت!', t3 + 2.6, 1.6);
+  K.steps(0, t2, t3, t3 + 2.6);
+};
+// ———————— ١١٦ رتّب الآية
+PL[116] = K => {
+  const words = ['قل', 'هو', 'الله', 'أحد'], mix = [2, 0, 3, 1], slot = i => [300 - i * 46, 128];
+  const L = mix.map((wi, j) => { const a = K.p(slot(j)[0], 128, 'r', { face: 180 }); a.carry = 'card'; a.carryText = words[wi]; a._wi = wi; return a; });
+  K.say([212, 50], 'كل واحد بطاقته قدام صدره', .3, 1.8);
+  const t3 = 2.4; L.forEach((a, j) => { const to = slot(a._wi); if (Math.abs(to[0] - K.pos(a)[0]) < 2) return; const zz = 128 + (j % 2 ? 26 : -26); K.go(a, [[K.pos(a)[0], zz], [to[0], zz], to], t3, 'walk', { speed: 60, seg: { carry: 'card' } }); });
+  const t4 = 5.6; K.all(L, t4, t4 + 1.4, 'cheer', { carry: 'card' }); const lead = K.lead(380, 50); K.say(lead, 'قل هو الله أحد ✓', t4 + .3, 1.6);
+  const t5 = 7.4; K.say([212, 60], 'يقرؤونها بصوت واحد', t5, 1.8);
+  K.steps(0, 1, t3, t4, t5);
+};
+// ———————— ١١٧ سباق السور
+PL[117] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); const lead = K.lead(120, 36, { face: 90 });
+  const C = [['الكهف', 80], ['يس', 130], ['الملك', 180]].map(([w, z]) => K.item('card', 330, z, { text: w, onStand: 1 }));
+  const a = K.p(60, 100, 'r', { face: 90 }), b = K.p(60, 160, 'b', { face: 90 });
+  K.say(lead, 'سورة مكية فيها قصة أصحاب الكهف', 1, 2.4);
+  const t3 = 3.6; let ta = K.go(a, [314, 84], t3, 'run', { speed: 120 }); K.go(b, [[200, 150], [314, 130]], t3 + .15, 'run', { speed: 105 });
+  K.hold(a, ta, ta + .4, 'point', { dir: [1, 0] }); ta = K.go(a, [60, 100], ta + .4, 'run', { speed: 120 }); K.hold(a, ta, ta + 1.2, 'cheer'); K.say(a, 'الكهف!', ta, 1.3);
+  K.steps(0, 1, t3, ta);
+};
+// ———————— ١١٩ جسر الأسئلة
+PL[119] = K => {
+  K.rectM(110, 30, 200, 200, { fill: '#38bdf8', fo: .45, c: '#7dd3fc' }); K.label(70, 30, 'الضفة'); K.label(350, 30, 'الضفة الثانية');
+  const lead = K.lead(212, 236, { face: 0 }); const T = K.col(3, 80, 90, 40, 'r', { face: 90 });
+  K.say(lead, 'سؤال للفريق!', .8, 1.4); K.say(T[1], 'جواب صح', 2.2, 1.2);
+  const t3 = 3.4; let t = t3; [130, 170, 210].forEach((x, k) => { K.item('stone', x, 130, { hide: tt => tt < t3 + k * 1.4 }); K.go(T[1], [x, 126], t3 + k * 1.4 + .3, 'walk', { speed: 60 }); });
+  const t5 = t3 + 4.4; K.go(T[1], [346, 126], t5, 'run', { speed: 80 }); K.hold(T[1], t5 + 1.6, t5 + 2.8, 'cheer');
+  K.steps(0, .8, t3, t3 + 1.4, t5);
+};
+// ———————— ١٢٠ صيد الكلمات
+PL[120] = K => {
+  const W = [['موسى', 90, 70], ['يونس', 300, 80], ['تفاح', 200, 190], ['نوح', 340, 180], ['جدة', 140, 160]].map(([t, x, z]) => K.item('card', x, z, { text: t, onStand: 1 }));
+  const lead = K.lead(212, 36); K.say(lead, 'صنفكم: الأنبياء', .4, 1.6);
+  const R = K.col(2, 40, 110, 40, 'r', { face: 90 });
+  let t = K.go(R[0], [[90, 90], [100, 80]], 2.2, 'run', { speed: 90 }); W[0].hide = tt => tt > t; K.go(R[0], [40, 110], t + .3, 'run', { speed: 90, seg: { carry: 'card' } });
+  t = K.go(R[1], [[200, 160], [326, 176]], 2.4, 'run', { speed: 100 }); W[3].hide = tt => tt > t; K.go(R[1], [40, 150], t + .3, 'run', { speed: 100, seg: { carry: 'card' } });
+  K.say(lead, '٥ دقايق', 5.4, 1.2); K.steps(0, 2.2, 5.4, 7);
+};
+// ———————— ١٢١ الخريطة البشرية
+PL[121] = K => {
+  K.paint('<path d="M90 70 L330 50 L360 120 L330 200 L150 210 L80 150 Z" fill="#e9cf94" fill-opacity=".55" stroke="#fff" stroke-width="4"/>');
+  [['الرياض', 240, 110], ['مكة', 150, 160], ['جدة', 120, 150], ['الدمام', 320, 95], ['أبها', 170, 200]].forEach(([n, x, z], i) => { K.textM(x, z, n, { s: 14, c: i === 4 ? '#ffd84d' : '#1d1140' }); });
+  const L = K.ring(6, 212, 130, 140, 'b'); const lead = K.lead(380, 36);
+  K.say(lead, 'أبها!', 2, 1.4); const t3 = 2.4; L.forEach((a, i) => { const t = K.go(a, [170 + (i - 2.5) * 12, 196 + (i % 2) * 8], t3 + K.R() * .3, 'run', { speed: 110 }); });
+  K.say(L[3], 'أنا الأقرب!', 4.6, 1.3); K.steps(0, 1, 2, 4.6);
+};
+// ———————— ١٢٢ الكلمة الطائرة
+PL[122] = K => {
+  const L = K.ring(9, 212, 124, 80, 'b'); const lead = K.lead(380, 36); K.say(lead, 'الصنف: فواكه', .3, 1.6);
+  const W = ['موز', 'تفاح', 'عنب', 'رمان'], ord = [0, 4, 7, 2, 6]; let t = 2;
+  for (let k = 0; k < 4; k++) { K.say(L[ord[k]], W[k], t - .3, .9); K.toss(L[ord[k]], L[ord[k + 1]], t + .4); t += 1.3; }
+  const t4 = t; K.say(L[6], 'موز!', t4, 1); K.say(lead, 'مكررة!', t4 + .8, 1.2); K.out(L[6], t4 + 1.4);
+  const t5 = t4 + 2.2; K.say(lead, 'الصنف: مدن', t5, 1.4);
+  K.steps(0, 1.7, 3.3, t4, t5);
+};
+// ———————— ١٢٣ اقفز الجواب
+PL[123] = K => {
+  const [lead, L] = classFacing(K, 10);
+  K.say(lead, 'ثلاثة زائد اثنين!', .5, 1.6);
+  for (let k = 0; k < 5; k++) { K.all(L, 2.2 + k * .55, 2.6 + k * .55, 'jump', { jump: 1 }); K.say(L[2], ['١', '٢', '٣', '٤', '٥'][k], 2.2 + k * .55, .5); }
+  const t4 = 5.4; K.say(lead, 'الحين تصفيق!', t4, 1.3); K.all(L, t4 + .5, t4 + 1.5, 'cheer');
+  K.steps(0, .5, 2.2, t4);
+};
+// ———————— ١٢٤ سلسلة الحركات
+PL[124] = K => {
+  const L = K.ring(8, 212, 124, 78, 'b');
+  K.hold(L[0], .8, 1.6, 'cheer'); K.say(L[0], 'تصفيق', .8, .8);
+  K.hold(L[1], 2, 2.6, 'cheer'); K.hold(L[1], 2.6, 3.2, 'jump', { jump: 1 }); K.say(L[1], '+ قفزة', 2.4, .8);
+  K.hold(L[2], 3.6, 4.1, 'cheer'); K.hold(L[2], 4.1, 4.6, 'jump', { jump: 1 }); K.hold(L[2], 4.6, 5.2, 'crouch'); K.say(L[2], '+ جلسة', 4.6, .8);
+  K.hold(L[3], 5.6, 6.2, 'cheer'); K.hold(L[3], 6.2, 7, 'freeze'); K.say(L[3], 'نسيت!', 6.4, 1); K.out(L[3], 7.2);
+  K.steps(0, .8, 2, 3.6, 6.4);
+};
+// ———————— ١٢٥ حقل الألغام
+PL[125] = K => {
+  K.rectM(110, 40, 210, 170, { dash: 1 }); [[150, 80], [200, 140], [240, 90], [270, 170], [180, 190], [290, 120]].forEach(([x, z]) => K.item('cup', x, z));
+  const a = K.p(96, 124, 'r', { face: 90 }), g = K.p(350, 60, 'r', { face: -90 });
+  K.say(a, 'أغمّض', .4, 1); a.blind = true;
+  const t2 = 1.4; const t1 = K.go(a, [[140, 120], [176, 110], [222, 120], [256, 130], [310, 124]], t2, 'blind', { speed: 26 });
+  K.say(g, 'خطوة يمين', 2.6, 1.2); K.say(g, 'قف!', 4.4, .9); K.say(g, 'قدّام', 5.4, 1);
+  K.say([250, 140], 'لغم!', 7, 1); K.steps(0, t2, 2.6, 7);
+};
+// ———————— ١٢٦ عبور النهر
+PL[126] = K => {
+  K.ground('sand'); K.rectM(110, 20, 200, 214, { fill: '#38bdf8', fo: .5, c: '#7dd3fc' }); K.label(70, 30, 'الضفة'); K.label(350, 30, 'الضفة الثانية');
+  const T = K.col(3, 76, 96, 30, 'r', { face: 90 }); const cb = [0, 1, 2].map(i => K.item('cardboard', 60, 200 + i * 6, { hide: t => t > 1.4 + i * .3 }));
+  const S1 = [[136, 124], [176, 124], [216, 124], [256, 124], [296, 124]].map(([x, z], i) => K.item('cardboard', x, z, { hide: t => t < 1.4 + i * .5 }));
+  T.forEach((a, k) => { let t = 1.6 + k * .9; [136, 176, 216, 256, 296, 346].forEach((x, j) => { t = K.go(a, [x, 120 + k * 4], t, 'walk', { speed: 40 }) + .15; }); });
+  K.say([212, 40], 'محد يلمس الماء!', 2.4, 1.6);
+  K.steps(0, 1.6, 4, 6, 8);
+};
+// ———————— ١٢٧ العقدة البشرية
+PL[127] = K => {
+  const L = K.ring(8, 212, 124, 40, 'b');
+  K.paint('<path d="M180 100 L240 150 M244 100 L184 150 M212 84 L212 164 M172 124 L252 124" stroke="#ffd84d" stroke-width="3" opacity=".7"/>');
+  K.say([212, 50], 'كل واحد يمسك يد اثنين', .3, 1.8);
+  L.forEach((a, i) => K.hold(a, 2, 4.4, 'catch'));
+  const t4 = 4.6; L.forEach((a, i) => { const g = i / 8 * 6.28 - Math.PI / 2; K.go(a, [212 + Math.cos(g) * 64, 124 + Math.sin(g) * 54], t4 + (i % 3) * .2, 'walk', { speed: 30 }); });
+  K.paint('<circle cx="212" cy="124" r="60" fill="none" stroke="#ffd84d" stroke-width="3" stroke-dasharray="4 6" opacity=".6"/>');
+  K.say([212, 50], 'رجعت دائرة!', 6.4, 1.4); K.steps(0, 1.2, 2, t4);
+};
+// ———————— ١٢٨ الصف الصامت
+PL[128] = K => {
+  const lead = K.lead(380, 36); const H = [3, 0, 4, 1, 2]; const L = H.map((h, j) => { const a = K.p(110 + j * 46, 130, 'g', { face: 180 }); a._h = h; return a; });
+  K.say(lead, 'رتبوا أنفسكم حسب الطول', .6, 1.8);
+  const t2 = 2.6; L.forEach((a, j) => K.hold(a, t2, t2 + .9, 'point'));
+  const t3 = 3.4; L.forEach((a, j) => { const to = [110 + a._h * 46, 130]; if (Math.abs(to[0] - K.pos(a)[0]) < 2) return; const zz = 130 + (j % 2 ? 24 : -24); K.go(a, [[K.pos(a)[0], zz], [to[0], zz], to], t3, 'walk', { speed: 60 }); });
+  const t4 = 6.2; K.say(L[2], '١٤ سنة', t4, .9); K.say(L[0], '١٥', t4 + .5, .9);
+  K.steps(0, .6, t2, t4);
+};
+// ———————— ١٢٩ القائد الخفي
+PL[129] = K => {
+  const L = K.ring(9, 212, 124, 82, 'b'); const g = K.p(212, 230, 'y', { face: 0 }); const ld = L[3];
+  K.go(g, [404, 236], .3, 'walk', { speed: 70 }); K.say(ld, '(القائد سراً)', 1.4, 1.4);
+  const t3 = 2.8; ['cheer', 'point', 'handup', 'crouch'].forEach((p, k) => { K.hold(ld, t3 + k * 1.2, t3 + k * 1.2 + .9, p); L.filter(a => a !== ld).forEach(a => K.hold(a, t3 + k * 1.2 + .25, t3 + k * 1.2 + 1, p)); });
+  const t4 = 3.6; K.go(g, [212, 124], t4, 'walk', { speed: 70 }); K.hold(g, 7.6, 8.6, 'point', { dir: [-1, -.3] }); K.say(g, 'هو القائد!', 7.6, 1.4);
+  K.steps(0, 1.4, t3, t4, 7.6);
+};
+// ———————— ١٣٢ بالون الماء الطائر
+PL[132] = K => {
+  const P = [0, 1, 2].map(i => [K.p(180, 70 + i * 50, ['r', 'b', 'g'][i], { face: 90 }), K.p(244, 70 + i * 50, ['r', 'b', 'g'][i], { face: -90 })]);
+  K.measure(184, 220, 240, 220, 'مترين');
+  let t = 1.2; P.forEach(([a, b], i) => K.toss(a, b, t + i * .2, { kind: 'balloon', h: 24 }));
+  const t3 = 2.4; P.forEach(([a, b]) => { K.go(a, [160, K.pos(a)[1]], t3, 'walk', { speed: 30 }); K.go(b, [264, K.pos(b)[1]], t3, 'walk', { speed: 30 }); });
+  t = 3.6; P.forEach(([a, b], i) => K.toss(b, a, t + i * .2, { kind: 'balloon', h: 30 }));
+  const t4 = 4.8; K.say(P[1][0], 'طاخ! تبللت', t4, 1.3); K.out(P[1][0], t4 + .4);
+  K.steps(0, 1.2, t3, t4);
+};
+// ———————— ١٣٣ رشّ الهدف
+PL[133] = K => {
+  K.lineM(120, 60, 120, 190, { w: 5 }); const a = K.p(104, 124, 'o', { face: 90 }); a.carry = 'spray'; const lead = K.lead(380, 200, { face: -90 });
+  const cups = [[290, 100], [310, 124], [290, 148], [330, 112], [330, 136]].map(([x, z]) => K.item('cup', x, z));
+  K.hold(lead, 1, 7, 'watch');
+  cups.forEach((c, i) => { const t = 1.2 + i * 1; K.hold(a, t, t + .6, 'throw', { dir: [1, 0], carry: 'spray' }); K.ball([124, 124], [c.x, c.z], t + .1, .5, { kind: 'drops', h: 6, y0: 34, y1: 8 }); c.hide = tt => tt > t + .6; });
+  K.steps(0, 1.2, 4);
+};
+// ———————— ١٣٤ إشارة المرور
+PL[134] = K => {
+  K.lineM(60, 40, 60, 210, { w: 5 }); const lead = K.lead(380, 124, { face: -90 }); const L = K.col(5, 70, 60, 36, 'b', { face: 90 });
+  K.say(lead, 'أخضر!', 1, 1.2); L.forEach((a, i) => K.go(a, [150, 60 + i * 36], 1.3, 'walk', { speed: 50 }));
+  const t3 = 3.2; K.say(lead, 'أصفر', t3, 1.2); L.forEach((a, i) => K.go(a, [180, 60 + i * 36], t3 + .3, 'walk', { speed: 14 }));
+  const t4 = 5.6; K.say(lead, 'أحمر!', t4, 1.3); L.forEach((a, i) => K.hold(a, t4 + .3, 8, 'freeze'));
+  const t5 = 6.6; K.go(L[2], [186, 132], t4 + .3, 'walk', { speed: 14 }); K.say(lead, 'تحركت! ارجع', t5, 1.4); K.go(L[2], [70, 132], t5 + .6, 'walk', { speed: 80 });
+  K.steps(0, 1, t3, t4, t5);
+};
+// ———————— ١٣٥ صيد الظل
+PL[135] = K => {
+  const L = K.spread(7, 'b', [60, 50, 360, 200]); const h = K.p(212, 124, 'r', { face: 180 }); K.say(h, 'أنا الصياد', .3, 1.3);
+  L.forEach(a => K.S.items.push({ kind: 'shadowfx', follow: a.id }));
+  wander(K, L, 1.6, 6, 40, 'run');
+  const tg = L[2], p = K.pos(tg); K.go(h, [[180, 110], [p[0] + 10, p[1] + 16]], 1.8, 'run', { speed: 70 }); K.say(h, 'دست ظلك!', 5.4, 1.3);
+  K.steps(0, 1.6, 2.4, 5.4);
+};
+// ———————— ١٣٦ العربة البشرية
+PL[136] = K => {
+  K.lineM(70, 40, 70, 210, { w: 5 }); K.lineM(352, 40, 352, 210, { dash: 1, c: '#241a52' });
+  [[90, 'r'], [160, 'b']].forEach(([z, tm], i) => { const w = K.p(100, z, tm, { face: 90, pose: 'crawl' }), p = K.p(76, z, tm, { face: 90 }); const sp = 30 - i * 3;
+    const t1 = K.go(w, [330, z], 1.2, 'crawl', { speed: sp }); K.go(p, [306, z], 1.2, 'walk', { speed: sp, seg: { pose: 'catch' } }); });
+  K.steps(0, 1.2, 3);
+};
 })();
 
 </script>
@@ -2277,7 +3311,8 @@ function evalActor(a, t) {
   const tl = a.tl; if (!tl || !tl.length) return st;
   // المقطع الحالي، وإلا آخر حركة انتهت (اللاعب يبقى مكانه)، وإلا الوضع الأساسي
   let seg = null, last = null;
-  for (const s of tl) { if (t >= s.t0 && t < s.t1) { seg = s; break; } if (s.t1 <= t && s.k === 'move' && (!last || s.t1 >= last.t1)) last = s; }
+  for (const s of tl) { if (t >= s.t0 && t < s.t1) { if (!seg || s.t0 >= seg.t0) seg = s; } else if (s.t1 <= t && s.k === 'move' && (!last || s.t1 >= last.t1)) last = s; }
+  if (seg && last && last.t1 > seg.t0 && seg.k === 'hold' && seg.t1 > 800) seg = null;   // حركة انتهت بعد بداية وقفة طويلة: الحركة أحدث
   if (!seg && last) seg = { ...last, done: 1 };
   if (!seg) return st;
   const u = seg.done ? 1 : clamp((t - seg.t0) / (seg.t1 - seg.t0), 0, 1);
@@ -2290,6 +3325,8 @@ function evalActor(a, t) {
     st.x = seg.x != null ? seg.x : st.x; st.z = seg.z != null ? seg.z : st.z; st.pose = seg.pose || st.pose; if (seg.dir) st.dir = seg.dir; if (seg.face != null) st.dir = dirOf(seg.face);
   }
   if (seg.carry !== undefined) st.carry = seg.carry;
+  if (seg.cs) st.cs = seg.cs;
+  if (seg.lift) st.y = (st.y || 0) + seg.lift;
   if (seg.alpha != null) st.alpha = typeof seg.alpha === 'number' ? seg.alpha : seg.alpha === 'in' ? u : 1 - u;
   if (seg.jump) st.y = Math.abs(Math.sin(u * Math.PI * seg.jump)) * 14 * (seg.jh || 1);
   if (seg.k === 'hold' && seg.bounce) st.y = Math.abs(Math.sin((t - seg.t0) * seg.bounce)) * 6;
@@ -2304,6 +3341,7 @@ function at(pts, d) {
 }
 function dirSeg(pts, i) { if (pts.length < 2) return null; i = clamp(i, 1, pts.length - 1); const dx = pts[i][0] - pts[i - 1][0], dz = pts[i][1] - pts[i - 1][1], l = Math.hypot(dx, dz); return l ? [dx / l, dz / l] : null; }
 function evalFx(f, t) {   // كرة طايرة أو أداة تتحرك
+  if (f.until && t > f.until) return null;
   let s = null; for (const q of f.tl) { if (t >= q.t0 && t < q.t1) { s = q; break; } }
   if (!s) { const last = f.tl.filter(q => q.t1 <= t).pop(); if (f.hideIdle && !last) return null; const q = last || f.tl[0]; const P = last ? (q.pts ? q.pts[q.pts.length - 1] : q.to) : (q.pts ? q.pts[0] : q.from); return { x: P[0], z: P[1], y: last ? (q.y1 || 0) : (q.y0 || 0), spin: 0 }; }
   const u = clamp((t - s.t0) / (s.t1 - s.t0), 0, 1);
@@ -2458,7 +3496,9 @@ Stage.prototype.draw = function () {
   if (this.labels) (s.marks || []).forEach(m => drawMark(x, cam, m));
   const items = [];
   (s.decor || []).forEach(d => items.push({ kind: 'obj', o: d, x: d.x, z: d.z, y: 0 }));
-  (s.items || []).forEach(o => { if (o.hide && o.hide(t)) return; items.push({ kind: 'obj', o, x: o.x, z: o.z, y: 0 }); });
+  (s.items || []).forEach(o => {
+    if (o.kind === 'shadowfx') { const a = s.actors.find(q => q.id === o.follow); if (a) { const q = evalActor(a, t), p0 = cam.p(q.x + 6, 0, q.z + 4), p1 = cam.p(q.x + 34, 0, q.z + 20); x.save(); x.globalAlpha = .32; x.strokeStyle = '#0b0722'; x.lineCap = 'round'; x.lineWidth = Math.max(5, 9 * p0[2] * 2); x.beginPath(); x.moveTo(p0[0], p0[1]); x.lineTo(p1[0], p1[1]); x.stroke(); x.restore(); } return; }
+    if (o.hide && o.hide(t)) return; items.push({ kind: 'obj', o, x: o.x, z: o.z, y: 0 }); });
   const ropes = [];
   (s.fx || []).forEach(f => {
     if (f.kind === 'rope' || f.kind === 'rope2') { ropes.push(f); if (f.kind === 'rope') { const th = t / f.period * Math.PI * 2; items.push({ kind: 'fx', o: { kind: 'ball' }, x: f.center[0] + Math.cos(th) * f.R, z: f.center[1] + Math.sin(th) * f.R, y: 3, spin: th }); } return; }
@@ -2466,7 +3506,8 @@ Stage.prototype.draw = function () {
     const q = evalFx(f, t); if (q) items.push({ kind: 'fx', o: f, x: q.x, z: q.z, y: q.y, spin: q.spin });
   });
   ropes.filter(f => f.kind === 'rope').forEach(f => { const th = t / f.period * Math.PI * 2, a = cam.p(f.center[0], PH * .45, f.center[1]), b = cam.p(f.center[0] + Math.cos(th) * f.R, 3, f.center[1] + Math.sin(th) * f.R); x.save(); x.strokeStyle = '#8a5a2b'; x.lineWidth = Math.max(2, 3 * a[2] * 2.2); x.lineCap = 'round'; x.beginPath(); x.moveTo(a[0], a[1]); x.quadraticCurveTo((a[0] + b[0]) / 2, Math.max(a[1], b[1]) + 6, b[0], b[1]); x.stroke(); x.restore(); });
-  (s.actors || []).forEach(a => { const q = evalActor(a, t); items.push({ kind: 'act', o: a, q, x: q.x, z: q.z, y: q.y }); });
+  const fo = s._play && t < s.T - .6 ? clamp((s.T - .6 - t) / .5, 0, 1) : 1;   // نهاية الدورة: يختفون بهدوء ثم يرجعون لأماكنهم
+  (s.actors || []).forEach(a => { const q = evalActor(a, t); if (fo < 1) q.alpha *= fo; items.push({ kind: 'act', o: a, q, x: q.x, z: q.z, y: q.y }); });
   for (const it of items) { const p = cam.p(it.x, 0, it.z); it.p = p; }
   items.sort((a, b) => (b.p[3] - a.p[3]) || (a.kind === 'act' ? 1 : -1));
   // الظلال أولاً
@@ -2482,6 +3523,13 @@ Stage.prototype.draw = function () {
     if (it.kind === 'act') drawActor(x, cam, it.o, it.q, it.p, t);
     else drawObj(x, cam, it.o, it);
   }
+  // عصا يمسكها لاعبين (أو أكثر)
+  (s.fx || []).filter(f => f.kind === 'stickfx').forEach(f => {
+    const A2 = s.actors.find(a => a.id === f.a), B2 = s.actors.find(a => a.id === f.b); if (!A2 || !B2) return;
+    const qa = evalActor(A2, t), qb = evalActor(B2, t), pa = cam.p(qa.x, PH * .52 + (qa.y || 0), qa.z), pb = cam.p(qb.x, PH * .52 + (qb.y || 0), qb.z);
+    x.save(); x.lineCap = 'round'; x.strokeStyle = '#7a4a1d'; x.lineWidth = Math.max(3, 4 * pa[2] * 2); x.beginPath(); x.moveTo(pa[0], pa[1]); x.lineTo(pb[0], pb[1]); x.stroke();
+    x.strokeStyle = '#c08a4b'; x.lineWidth = Math.max(1.2, 1.6 * pa[2] * 2); x.stroke(); x.restore();
+  });
   // حبل الشد: يمر بأيدي اللاعبين
   ropes.filter(f => f.kind === 'rope2').forEach(f => {
     const dx = f.sway(t), a = cam.p(f.x0 + dx, f.y, f.z), b = cam.p(f.x1 + dx, f.y, f.z), m = cam.p(212 + dx, f.y - 3, f.z);
@@ -2534,7 +3582,11 @@ function drawActor(x, cam, a, q, p, t) {
   if (a.up) { x.save(); x.strokeStyle = 'rgba(255,201,40,.95)'; x.lineWidth = Math.max(2, 3 * sc); x.shadowColor = '#ffc928'; x.shadowBlur = 10; const r = PH * .34 * sc; x.beginPath(); x.ellipse(sp[0], sp[1] + bob * sc, r, r * Math.sin(cam.pitch * RAD) * .7, 0, 0, 7); x.stroke(); x.restore(); }
 }
 function drawCarry(x, cam, a, q, sp, h, mirror, back) {
-  const o = OBJ[q.carry]; const hh = (o ? o[1] : 10) * sp[2] * .9;
+  const o = OBJ[q.carry]; const hh = (o ? o[1] : 10) * sp[2] * .9 * (q.cs || 1);
+  if (/@foot$/.test(q.carry)) {   // بالون مربوط بالكاحل
+    const kind = q.carry.split('@')[0], o2 = OBJ[kind], d = q.dir || [1, 0], g = cam.p(q.x - d[0] * 5 + 4, 2, q.z + 5);
+    drawSprite(x, o2 && o2[0], kind, g[0], g[1], (o2 ? o2[1] : 12) * g[2] * .85, a.team); return;
+  }
   if (q.carry === 'ball' && (q.pose === 'run' || q.pose === 'walk')) {   // تنطيط الكرة عند القدم
     const d = q.dir || [1, 0], g = cam.p(q.x + d[0] * 9, 0, q.z + d[1] * 9);
     drawSprite(x, o[0], 'ball', g[0], g[1], hh, null, q.d * .3); return;
@@ -2551,6 +3603,8 @@ function drawSprite(x, key, kind, sx, sy, h, team, rot) {
   } else phObj(x, sx, sy, h, kind);
 }
 function drawObj(x, cam, o, it) {
+  if (o.kind === 'drops') { const P = it.y ? cam.p(it.x, it.y, it.z) : it.p, r = Math.max(2, 3.2 * P[2] * 2.2); x.save(); x.fillStyle = '#5cc8f5'; x.strokeStyle = '#fff'; x.lineWidth = 1;
+    [[0, 0], [-r * 1.6, r * 1.1], [r * 1.5, r * .8], [r * .3, -r * 1.4]].forEach(([dx, dy]) => { x.beginPath(); x.ellipse(P[0] + dx, P[1] + dy, r * .8, r, 0, 0, 7); x.fill(); x.stroke(); }); x.restore(); return; }
   const def = OBJ[o.kind]; const H0 = (o.h || (def ? def[1] : 12)) * (o.scale || 1);
   const P = it.y ? cam.p(it.x, it.y, it.z) : it.p, px = P[0], sy = P[1], sc = P[2];
   x.save(); if (o.alpha != null) x.globalAlpha = o.alpha;
@@ -2671,7 +3725,7 @@ async function record(scene, o = {}) {
     const el = st._el || 0;
     // شريط الخطوة
     if (el > intro && el < intro + T * loops && steps.length) {
-      const tt = (el - intro) % T, i = Math.min(steps.length - 1, Math.floor(tt / T * steps.length));
+      const tt = (el - intro) % T, i = stepIndex(scene, steps.length, tt);
       const fs = Math.round(h * .036); x.save(); x.font = `700 ${fs}px ${fonts}`; x.direction = 'rtl'; x.textAlign = 'right'; x.textBaseline = 'middle';
       const txt = steps[i], maxW = w * .82, lines = wrap(x, txt, maxW), bh = fs * 1.5 * lines.length + fs * 1.1, by = h - bh - h * .04, bw = Math.min(maxW, Math.max(...lines.map(l => x.measureText(l).width))) + fs * 4.2;
       x.fillStyle = 'rgba(16,11,45,.86)'; x.beginPath(); x.roundRect((w - bw) / 2, by, bw, bh, fs * .8); x.fill();
@@ -2709,13 +3763,20 @@ async function record(scene, o = {}) {
     requestAnimationFrame(tick);
   });
 }
+// رقم الخطوة في لحظة t: من توقيت المشهد إن وُجد، وإلا تقسيم متساوٍ
+function stepIndex(scene, n, t) {
+  const T = scene.T, st = scene.stepT;
+  if (st && st.length) { let i = 0; for (let k = 0; k < Math.min(n, st.length); k++) if (t >= st[k] - .01) i = k; if (n > st.length && t > st[st.length - 1]) { const r = (t - st[st.length - 1]) / Math.max(.1, T - st[st.length - 1]); i = Math.min(n - 1, st.length - 1 + Math.floor(r * (n - st.length + 1))); } return i; }
+  return Math.min(n - 1, Math.floor(t / T * n));
+}
+function stepStart(scene, n, i) { const st = scene.stepT; if (st && i < st.length) return st[i]; if (st && st.length) { const a = st[st.length - 1]; return a + (scene.T - a) * (i - st.length + 1) / (n - st.length + 1); } return scene.T * i / n; }
 function wrap(x, txt, maxW) {
   const words = String(txt).split(/\s+/), lines = []; let cur = '';
   for (const w of words) { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur); return lines.slice(0, 3);
 }
 
-window.STAGE = { Stage, create: (c, o) => new Stage(c, o), snapshot, record, bestMime, VIEWS, PH, FW, FH, OBJ, TEAMC, poseKey, img, has, evalActor, at };
+window.STAGE = { stepIndex, stepStart, Stage, create: (c, o) => new Stage(c, o), snapshot, record, bestMime, VIEWS, PH, FW, FH, OBJ, TEAMC, poseKey, img, has, evalActor, at };
 })();
 
 </script>
@@ -3100,7 +4161,7 @@ function startStage(g, steps) {
   GV = { id: g.id, st: stg, scene, steps };
   const fit = () => { const r = box.getBoundingClientRect(); stg.size(r.width, r.height); stg.camDirty = true; stg.draw(); };
   GV.ro = new ResizeObserver(fit); GV.ro.observe(box); fit();
-  const n = Math.max(1, steps.length), stepAt = t => Math.min(n - 1, Math.floor(t / scene.T * n));
+  const n = Math.max(1, steps.length), stepAt = t => STAGE.stepIndex(scene, n, t);
   let lastStep = -1;
   stg.onTime = (t, playing) => {
     $('stprog').firstElementChild.style.width = (t / scene.T * 100) + '%';
@@ -3111,7 +4172,7 @@ function startStage(g, steps) {
   };
   stg.onTap = () => stg.toggle();
   stg.onCam = () => { document.querySelectorAll('#stviews button').forEach(b => b.classList.remove('on')); hideHint(); };
-  $('stprog').innerHTML = '<i></i>' + Array.from({ length: n - 1 }, (_, i) => `<span class="mk" style="inset-inline-start:${(i + 1) / n * 100}%"></span>`).join('');
+  $('stprog').innerHTML = '<i></i>' + Array.from({ length: n - 1 }, (_, i) => `<span class="mk" style="inset-inline-start:${STAGE.stepStart(scene, n, i + 1) / scene.T * 100}%"></span>`).join('');
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   stg.load(scene).then(() => { if (GV && GV.st === stg) { if (still) { stg.seek(scene.thumbT || 0); } else stg.play(); setTimeout(hideHint, 4200); } });
   // أدوات التحكم
@@ -3121,7 +4182,7 @@ function startStage(g, steps) {
   $('stlab').onclick = () => { stg.labels = stg.trails = !stg.labels; $('stlab').classList.toggle('on', stg.labels); stg.draw(); };
   const SPD = [1, .5, 1.5]; $('stspd').onclick = () => { const i = (SPD.indexOf(stg.speed) + 1) % SPD.length; stg.speed = SPD[i]; $('stspd').textContent = ['١×', '½×', '١.٥×'][i]; };
   $('stfs').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else box.requestFullscreen && box.requestFullscreen().catch(() => { }); };
-  $('gsteps').onclick = e => { const li = e.target.closest('li'); if (!li) return; const i = +li.dataset.i; stg.seek(scene.T * i / n + .01); if (!stg.playing) stg.play(); $('sbox').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
+  $('gsteps').onclick = e => { const li = e.target.closest('li'); if (!li) return; const i = +li.dataset.i; stg.seek(STAGE.stepStart(scene, n, i) + .02); if (!stg.playing) stg.play(); $('sbox').scrollIntoView({ behavior: 'smooth', block: 'center' }); };
   document.querySelector('.st-mode').onclick = e => { const b = e.target.closest('button'); if (!b) return; const two = b.dataset.m === '2d'; document.querySelectorAll('.st-mode button').forEach(x => x.classList.toggle('on', x === b));
     const d = $('diag'); if (two && !d.innerHTML) d.innerHTML = D.pics[g.id] ? PIC.render(D.pics[g.id], g.place) : '<p class="hint">ما فيه مخطط لهذي اللعبة</p>';
     d.hidden = !two; $('stctl').style.visibility = two ? 'hidden' : ''; if (two) stg.pause(); else stg.play(); };
