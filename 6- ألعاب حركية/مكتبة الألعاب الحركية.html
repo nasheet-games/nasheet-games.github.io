@@ -3866,6 +3866,56 @@ PL[137] = K => {
 })();
 
 </script>
+<script>/* plays6 */
+// طبقة إثراء تلقائية للمشاهد المكتوبة القديمة (plays1-3): تقرأ شرح اللعبة وتضيف أدوات محرك الإخراج
+// — فكرة اللعبة كعنوان، الفرق محاطة ومسمّاة، الأدوار (مغمّض/قائد)، قانون السلامة وقت اللعب، حركة بطيئة لأول خروج، وشريط الفوز
+(function () {
+'use strict';
+const PL = SCENE.PLAYS, D = window.D || {}, EX = D.explain || {};
+const SKIP = new Set([2, 9, 10, 13, 22, 35, 60, 109, 116, 129, 1, 20, 24, 25, 28, 29, 30, 31, 33, 47, 49, 51, 55, 56, 57, 77, 82, 99, 102, 108, 118, 130, 131, 137]);
+const TN = { r: 'الأحمر', b: 'الأزرق', g: 'الأخضر', y: 'الأصفر', p: 'البنفسجي' };
+// جملة قصيرة تنعرض في سطر واحد
+function short(s, n = 52) { if (!s) return ''; s = String(s).trim(); const first = s.split(/(?<=[.!؟])\s+|،\s+(?=[^،]{8,})/)[0].replace(/[.]+$/, ''); const t = first.length <= n ? first : s.slice(0, n).replace(/\s+\S*$/, '') + '…'; return t; }
+const EXTRA = window.ENRICH = {};   // ENRICH[id] = (K, info) => {}  — إضافات يدوية لألعاب معيّنة
+function enrich(K, game) {
+  const S = K.S, e = EX[game.id] || {}, A = S.actors, P = A.filter(a => a.ch !== 't' && !a.lead);
+  let end = 0; A.forEach(a => a.tl.forEach(q => { if (q.t1 < 800) end = Math.max(end, q.t1); })); (S.fx || []).forEach(f => (f.tl || []).forEach(q => { if (q.t1 < 50) end = Math.max(end, q.t1); }));
+  end = Math.max(end, 4); const st = S.stepT || [], s1 = st[1] != null ? st[1] : Math.min(2.6, end * .25);
+  // ١) فكرة اللعبة في أول ثانيتين
+  if (e.hook) K.title(.15, Math.max(1.8, Math.min(2.8, s1 - .1)), short(e.hook, 56), { icon: '💡', c: 'gold' });
+  // ٢) الفرق: حلقة باسم كل فريق في البداية
+  const teams = {}; P.forEach(a => { (teams[a.team] = teams[a.team] || []).push(a); });
+  const big = Object.entries(teams).filter(([t, L]) => L.length >= 2 && TN[t]);
+  if (big.length >= 2 && big.length <= 4) big.forEach(([t, L], i) => K.group(L, .3 + i * .15, Math.max(2, s1), { label: 'فريق ' + TN[t], c: t }));
+  // ٣) الأدوار الظاهرة من الحركة: المغمّض
+  const BL = A.filter(a => a.ch !== 't' && (a.blind || a.tl.some(q => q.pose === 'blind'))), bt = a => a.blind ? 0 : Math.max(0, Math.min(...a.tl.filter(q => q.pose === 'blind').map(q => q.t0)));
+  if (BL.length && BL.length <= 3) BL.forEach(a => K.role(a, 'مغمّض', '🙈', 'purple', bt(a), 1e4));
+  else if (BL.length) K.callout(BL[0], '🙈 كلهم مغمّضين', bt(BL[0]) + .3, bt(BL[0]) + 3, { side: 'u', c: 'purple' });
+  // نداء المعلم بعلامة تعجب = فقاعة صياح
+  const leadIds = new Set(A.filter(a => a.ch === 't' || a.lead).map(a => a.id));
+  S.bubbles = (S.bubbles || []).filter(b => { if (b.actor != null && leadIds.has(b.actor) && /!$/.test(b.text) && b.text.length < 22) { S.ann.push({ k: 'bubble', st: 'shout', w: { a: b.actor }, text: b.text, t0: b.t0, t1: b.t1 }); return false; } return true; });
+  // أول رمية: سهم قوس يبيّن وين بتروح قبلها بلحظة
+  const f0 = (S.fx || []).flatMap(f => (f.tl || []).filter(q => q.from && q.to && q.t0 > .8 && Math.hypot(q.to[0] - q.from[0], q.to[1] - q.from[1]) > 40)).sort((a, b) => a.t0 - b.t0)[0];
+  if (f0) K.arrow(f0.from, f0.to, f0.t0 - .7, f0.t0 + .2, { air: 22, c: 'white', dash: 1, grow: .45 });
+  // ٤) قانون السلامة وقت اللعب (الخطوة الثالثة أو منتصف المشهد)
+  if (e.safe && !/^ما فيه/.test(e.safe)) { const ts = st[2] != null ? st[2] + .3 : end * .45; K.rule(ts, ts + 2.6, short(e.safe, 54)); }
+  // ٥) أول خروج: حركة بطيئة تبيّن اللحظة
+  const outs = (S.ann || []).filter(n => n.k === 'stamp' && n.kind === 'out').map(n => n.t0).sort((a, b) => a - b);
+  if (outs.length && outs[0] > 1.5) K.slow(outs[0] - .6, outs[0] + .25, .45);
+  // ٦) الفوز: إطار أخضر ونجمة للمحتفلين، وتمديد المشهد ليقرأ
+  if (e.win) {
+    const cheer = A.filter(a => a.ch !== 't' && a.tl.some(q => q.pose === 'cheer' && q.t0 > end * .5 && q.t1 < 800)).slice(0, 3);
+    cheer.forEach((a, i) => K.stamp(a, i ? 'star' : 'win', end - .1 + i * .1, { t1: end + 2.2 }));
+    if (cheer.length) K.burst(cheer[0], 'confetti', end);
+    K.right(end + .1, end + 2.3, short('الفوز: ' + e.win, 58), { sound: !cheer.length });
+    K.T(end + 2.6);
+  }
+  if (EXTRA[game.id]) EXTRA[game.id](K, { end, st, e, P, teams });
+}
+Object.keys(PL).forEach(k => { const id = +k; if (SKIP.has(id)) return; const base = PL[id]; PL[id] = (K, game, spec) => { base(K, game, spec); enrich(K, game); }; });
+})();
+
+</script>
 <script>/* stage */
 // المسرح: مشهد ثلاثي الأبعاد (2.5D) لكل لعبة — أرضية بمنظور حقيقي (WebGL) + لاعبين وأدوات (صور ChatGPT) يتحركون
 // الإحداثيات: x يمين (0..424)، z للأمام نحو الكاميرا (0..260)، y للأعلى. نفس فضاء المخطط القديم.
