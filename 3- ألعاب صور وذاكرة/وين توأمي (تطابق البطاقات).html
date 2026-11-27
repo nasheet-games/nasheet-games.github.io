@@ -673,15 +673,17 @@ body[data-emb=adult] :is(.sk-temo,.wzk-emb)[data-e="⛵"]{--emb:url(data:image/w
 .wzk-brand>*{margin:0!important}
 .wzk-brand img{display:block;max-height:3.4em;width:auto;max-width:100%}
 .wzk-steps{flex:1;display:flex;justify-content:center;gap:.55em;min-width:0}
-.wzk-st{display:flex;align-items:center;gap:.6em;min-width:0;max-width:15.5em;padding:.4em .95em .4em 1.1em;border-radius:1.1em;background:var(--wzk-chip);border:1.5px solid var(--wzk-edge);text-align:start;transition:transform .15s,box-shadow .15s}
+.wzk-st{display:flex;align-items:center;gap:.6em;min-width:0;max-width:19em;padding:.4em .95em .4em 1.1em;border-radius:1.1em;background:var(--wzk-chip);border:1.5px solid var(--wzk-edge);text-align:start;transition:transform .15s,box-shadow .15s}
 .wzk-st:hover{transform:translateY(-2px)}
 .wzk-st b{flex:none;display:grid;place-items:center;width:2.1em;height:2.1em;border-radius:50%;font:800 1.1em/1 var(--wzk-num);background:var(--wzk-chip2)}
 .wzk-st span{display:flex;flex-direction:column;min-width:0}
 .wzk-st em{font:400 1.3em/1.15 var(--wzk-f2);font-style:normal;white-space:nowrap}
-.wzk-st small{font-size:.76em;line-height:1.35;color:var(--wzk-mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wzk-st small{font-size:.76em;line-height:1.3;color:var(--wzk-mut);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere}
+.wzk-st small:empty{display:none}
 .wzk-st.on{background:linear-gradient(180deg,var(--wzk-on1),var(--wzk-on2));border-color:var(--wzk-onedge);color:var(--wzk-onink);box-shadow:0 0 0 .18em color-mix(in srgb,var(--wzk-on1) 35%,transparent),0 .6em 1.4em color-mix(in srgb,var(--wzk-on2) 40%,transparent)}
 .wzk-st.on b{background:#fff;color:var(--wzk-on2)}
-.wzk-st.on small{color:inherit;opacity:.88}
+/* ملخص الخطوة الحالية: شريحة فاتحة بحبر غامق، فيبان على أي لون (ذهبي، بنفسجي، أخضر…) */
+.wzk-st.on small{color:#1d1a16!important;opacity:1!important;background:rgba(255,255,255,.78);border-radius:.55em;padding:.05em .45em;margin-top:.15em;font-weight:700;text-shadow:none!important;-webkit-text-fill-color:currentColor}
 .wzk-st.done b{background:var(--wzk-ok);color:#fff}
 .wzk-admb{display:inline-flex;align-items:center;gap:.35em;padding:.45em .9em;border-radius:99px;background:var(--wzk-chip);border:1.5px solid var(--wzk-edge);font-weight:700;font-size:.9em;white-space:nowrap}
 .wzk-admb:hover{border-color:var(--wzk-gold)}
@@ -3262,6 +3264,7 @@ window.WZK = (() => {
     q('.wzk-next', F).onclick = () => { click(); go(step + 1); };
     q('.wzk-steps', F).addEventListener('click', e => { const b = e.target.closest('[data-wzk-st]'); if (b) { click(); go(+b.dataset.wzkSt); } });
     q('.wzk-adm .wzk-x', F).onclick = closeAdmin;
+    new MutationObserver(inkSoon).observe(F, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'aria-pressed'] });
     q('.wzk-adm', F).addEventListener('click', e => { if (e.target.classList.contains('wzk-adm')) closeAdmin(); });
     // «ابدأ» قبل آخر خطوة = التالي
     S.addEventListener('click', e => { if (step < last() && e.target.closest && e.target.closest('.wzk-go')) { e.preventDefault(); e.stopPropagation(); nudge(); go(step + 1); } }, true);
@@ -3281,7 +3284,7 @@ window.WZK = (() => {
   function render() {
     if (!C) return; const F = C.F;
     step = Math.max(0, Math.min(last(), step));
-    q('.wzk-steps', F).innerHTML = C.steps.map((s, i) => `<button type="button" class="wzk-st ${i === step ? 'on' : ''} ${i < step ? 'done' : ''}" data-wzk-st="${i}" aria-current="${i === step ? 'step' : 'false'}"><b>${AR(i + 1)}</b><span><em>${s.name}</em><small>${s.sub ? s.sub() : ''}</small></span></button>`).join('');
+    q('.wzk-steps', F).innerHTML = C.steps.map((s, i) => { const sub = s.sub ? String(s.sub() || '') : ''; return `<button type="button" class="wzk-st ${i === step ? 'on' : ''} ${i < step ? 'done' : ''}" data-wzk-st="${i}" aria-current="${i === step ? 'step' : 'false'}" title="${sub.replace(/"/g, '&quot;')}"><b>${AR(i + 1)}</b><span><em>${s.name}</em><small>${sub}</small></span></button>`; }).join('');
     const st = C.steps[step], pane = C.panes[step], main = q('.wzk-main', F), keep = main.scrollTop, fresh = shown !== step;
     C.panes.forEach((p, i) => { p.hidden = i !== step; });
     if (st.html) pane.innerHTML = st.html();
@@ -3295,7 +3298,51 @@ window.WZK = (() => {
     C.go.title = lk ? 'كمّلوا الخطوات أولاً — أو اضغطوا رقم آخر خطوة فوق' : '';
     const ad = q('.wzk-adm', F); if (!ad.hidden && C.admin && C.admin.html) fillAdmin();
     if (C.onRender) C.onRender(step);
+    inkSoon();
   }
+
+  /* حبر مقروء تلقائياً: الخيار المختار وشريط الخطوات وزر «التالي» ياخذون لون الثيم، وأحياناً يصير النص بنفس لون خلفيته
+     (مثل الذهبي على الذهبي). نقيس التباين، ولو ضعيف نختار الأوضح من الغامق والأبيض، ولو الاثنين ضعاف نضيف حافة خفيفة. */
+  const INK = '.wzk-st.on em, .wzk-st.on small, .wzk-next, .wzk-go, .wzk-chip.on, .wzk-pane .chip.on, .wzk-pane button.on, .wzk-pane [aria-pressed="true"]';
+  const DARK = [29, 26, 22], LIGHT = [255, 255, 255];
+  const rgb = c => { const m = c && c.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return [v[0], v[1], v[2], v[3] === undefined ? 1 : v[3]]; };
+  const lum = c => { const f = x => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  function bgOf(el) {   // لون الخلفية الفعلي (التدرجات بمتوسط ألوانها)؛ null لو خلفه صورة
+    const L = [];
+    for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+      const cs = getComputedStyle(e);
+      if (cs.backgroundImage.includes('url(')) return null;
+      const g = cs.backgroundImage.match(/rgba?\([^)]+\)/g);
+      if (g) { const cl = g.map(rgb).filter(Boolean); L.push(cl.reduce((a, c) => [a[0] + c[0] / cl.length, a[1] + c[1] / cl.length, a[2] + c[2] / cl.length, Math.min(a[3], c[3])], [0, 0, 0, 1])); if (L[L.length - 1][3] >= .9) break; }
+      const c = rgb(cs.backgroundColor); if (c && c[3] > 0) { L.push(c); if (c[3] >= .9) break; }
+    }
+    if (!L.length || L[L.length - 1][3] < .9) return null;
+    let b = L.pop(); while (L.length) { const t = L.pop(); b = [0, 1, 2].map(i => t[i] * t[3] + b[i] * (1 - t[3])); }
+    return b;
+  }
+  function inkOne(t) {
+    if (t.dataset.wzkInk) { t.style.removeProperty('color'); t.style.removeProperty('-webkit-text-fill-color'); t.style.removeProperty('text-shadow'); delete t.dataset.wzkInk; }
+    const cs = getComputedStyle(t), bg = bgOf(t); if (!bg) return;
+    const fill = rgb(cs.webkitTextFillColor), fg = fill && fill[3] > 0 ? fill : rgb(cs.color); if (!fg) return;
+    if (ratio(fg, bg) >= 3.2) return;
+    const d = ratio(DARK, bg), w = ratio(LIGHT, bg), dark = d >= w, best = Math.max(d, w);
+    const col = dark ? '#1d1a16' : '#fff';
+    t.style.setProperty('color', col, 'important'); t.style.setProperty('-webkit-text-fill-color', col, 'important');
+    if (best < 4) t.style.setProperty('text-shadow', dark ? '0 0 2px rgba(255,255,255,.85),0 0 1px #fff' : '0 1px 2px rgba(0,0,0,.6),0 0 1px rgba(0,0,0,.7)', 'important');
+    t.dataset.wzkInk = 1;
+  }
+  function ink() {
+    if (!C || !C.F || !C.F.isConnected) return;
+    C.F.querySelectorAll(INK).forEach(el => {
+      if (!el.getClientRects().length) return;
+      const set = new Set([el]);
+      el.querySelectorAll('*').forEach(k => { if (!k.closest('svg') && [...k.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) set.add(k); });
+      set.forEach(t => { if (t === el && ![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return; try { inkOne(t); } catch (e) { } });
+    });
+  }
+  let inkT = 0;
+  function inkSoon() { cancelAnimationFrame(inkT); inkT = requestAnimationFrame(ink); setTimeout(ink, 320); }
   function go(i) { if (!C) return; closePop(); step = Math.max(0, Math.min(last(), i)); render(); }
   function reset() { step = 0; shown = -1; closePop(); closeAdmin(); }
 
